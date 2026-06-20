@@ -1,0 +1,42 @@
+---
+description: How AI must operate on Yoni — validate before generate, repair source first
+alwaysApply: true
+---
+
+# Yoni AI Operations
+
+## Pipeline (deterministic until generation)
+
+```
+Parser → AST → Normalizer → Knowledge Graph → Validator → Impact Analyzer → Repair Engine → Execution Planner → Generator (LLM)
+```
+
+LLM is **only** for: generation, repair suggestions, documentation, migration strategy.
+
+## Never
+
+- Patch generated implementation directly
+- Infer business meaning from `generated/` output
+- Skip validation before code generation
+- Debug by name — always use stable block `id:`
+
+## Always
+
+1. Read Yoni source only
+2. Validate; repair Yoni source if diagnostics fire
+3. Re-run validation after repair
+4. Regenerate outputs from valid spec
+5. Attach generated artifacts to source block IDs
+
+## Repair workflow
+
+1. Read diagnostic (`code`, `blockId`, `suggestion`)
+2. Propose repair using patch primitives (see `yoni-repair` skill)
+3. Apply patch to Yoni source deterministically
+4. Regenerate affected outputs
+
+## Impact analysis
+
+Before changing entities/rules/states, traverse the dependency graph to find affected intents, queries, views, tests.
+
+Semantic diff > textual diff.

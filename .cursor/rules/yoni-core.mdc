@@ -1,0 +1,37 @@
+---
+description: Yoni project philosophy — spec is source of truth, not code
+alwaysApply: true
+---
+
+# Yoni Core
+
+Yoni is a **software specification language**, not a programming language.
+
+- Humans author `.yoni` / `.yni` / `.yo` specs
+- AI maintains specs, generates implementation, never treats generated code as truth
+- Yoni describes **WHAT**; AI decides **HOW**
+- Generated artifacts (`generated/`) are disposable and may be deleted
+
+## Mental model
+
+```
+Project → Domain → Entity → Intent → Implementation (generated)
+```
+
+## Primary rule
+
+Never describe implementation when business intent can be described.
+
+Prefer `intent SendReminder` over loops, SQL, or API calls.
+
+## Building blocks (only these)
+
+`project`, `domain`, `entity`, `state`, `event`, `intent`, `rule`, `query`, `action`, `constraint`, `workflow`, `error`, `test`, `capability`, `view`, `deployment`, `migration`
+
+Everything else (functions, classes, APIs, DB schemas, UI) is **derived**.
+
+## Spec authority
+
+When spec and generated code disagree: **Yoni wins. Always.**
+
+Latest numbered doc in `docs/` wins over older docs on conflicts (`03-*` > `01-*` > `00-*`).

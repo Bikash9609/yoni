@@ -1,0 +1,47 @@
+---
+description: Yoni repo layout and canonical folder placement
+globs: "{project/**,domains/**,capabilities/**,views/**,deployments/**,migrations/**,.yoni/**,yoni.config.yoni}"
+alwaysApply: false
+---
+
+# Yoni Repository Structure
+
+## Durable source (recoverable without generated code)
+
+- `yoni.config.yoni`, `.yoni/`, `project/`, `domains/`, `capabilities/`, `views/`, `deployments/`, `migrations/`
+
+## Disposable output
+
+- `generated/` — code, docs, tests, infra, ui
+- `.ai/` — cache, traces, runs
+
+## Canonical folders (one block, one home)
+
+| Block | Path |
+|-------|------|
+| project | `project/` |
+| domain | `domains/<name>/domain.yoni` |
+| entity | `domains/<name>/entities/` |
+| intent | `domains/<name>/intents/` |
+| rule | `domains/<name>/rules/` |
+| query | `domains/<name>/queries/` |
+| action | `domains/<name>/actions/` |
+| event | `domains/<name>/events/` |
+| state | `domains/<name>/states/` |
+| workflow | `domains/<name>/workflows/` |
+| constraint | `domains/<name>/constraints/` |
+| error | `domains/<name>/errors/` |
+| test | `domains/<name>/tests/` |
+| capability | `capabilities/<name>/capability.yoni` |
+| view | `views/` |
+| deployment | `deployments/` |
+| migration | `migrations/` |
+
+No `misc/`, `common/`, or `utils/` folders. No duplicate block homes.
+
+## `.yoni/` machine layer
+
+- `conventions/` — naming, IDs, references, lint policy
+- `prompts/` — generation, repair, migration, test-generation contracts
+- `policies/` — determinism, traceability, security, review
+- `schemas/` — blocks, folder-map, file-kinds

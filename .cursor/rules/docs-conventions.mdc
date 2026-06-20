@@ -1,0 +1,31 @@
+---
+description: Documentation ordering and conflict resolution in docs/
+globs: docs/**/*.md
+alwaysApply: false
+---
+
+# Docs Conventions
+
+## Ordering
+
+Files in `docs/` use numeric prefixes: `00-*`, `01-*`, `02-*`, etc.
+
+## Conflict resolution
+
+If two docs describe the same thing differently, **the higher prefix wins**.
+
+Example: `03-final-yoni-specs.md` overrides `01-yoni-language-spec.md`.
+
+## Adding docs
+
+New docs follow the same prefix pattern. Increment the prefix for new authoritative specs.
+
+## Key doc map
+
+| File | Purpose |
+|------|---------|
+| `00-initial.md` | Doc ordering rules |
+| `01-yoni-language-spec.md` | Repo structure, linter, VS Code plan |
+| `02-how-yoni-differes.md` | Why compiler/validator matters |
+| `03-final-yoni-specs.md` | AST schemas, graph, repair, execution plan |
+| `MANDATORY.md` | Core Yoni philosophy and block glossary |

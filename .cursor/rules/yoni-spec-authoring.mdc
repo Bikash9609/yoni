@@ -1,0 +1,63 @@
+---
+description: Yoni source file syntax, blocks, IDs, and references
+globs: "**/*.{yoni,yni,yo}"
+alwaysApply: false
+---
+
+# Yoni Authoring
+
+## Every block requires
+
+- block keyword + name
+- `id:` — stable machine address (diagnostics target IDs, not line numbers)
+- `desc:` — first-class metadata
+
+## Typed references only
+
+```
+@Entity.Customer
+@Intent.CreateInvoice
+@Rule.Adult
+```
+
+Never use free strings like `"CreateInvoice"`.
+
+## Intent section order (mandatory)
+
+```
+input: → validate: → process: → emit: → fail: → return:
+```
+
+Linter rejects reordered, missing, or duplicate sections.
+
+## Rules
+
+- One top-level block per file
+- kebab-case filenames matching block name
+- Machine-checkable rules: `customer.active == true`, not prose
+- Actions = side effects only; business logic lives in rules/intents
+- Entities are canonical schema — no raw objects
+
+## ID prefixes
+
+| Block | Prefix |
+|-------|--------|
+| entity | `ENT_` |
+| intent | `INT_` |
+| rule | `RULE_` |
+| query | `QUERY_` |
+| action | `ACT_` |
+| event | `EVT_` |
+| error | `ERR_` |
+| state | `STS_` |
+| constraint | `CNST_` |
+| test | `TST_` |
+| capability | `CAP_` |
+| view | `VIEW_` |
+| deployment | `DEP_` |
+| migration | `MIG_` |
+| domain | `DOM_` |
+| project | `PROJ_` |
+| workflow | `WF_` |
+
+See `docs/03-final-yoni-specs.md` for full AST schemas.
