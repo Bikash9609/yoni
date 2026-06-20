@@ -1,0 +1,76 @@
+// Yoni Language Grammar (v1)
+// Pipeline step: Parser → AST (see docs/03-final-yoni-specs.md)
+//
+// Layer 1 — Lexical tokens (block keywords, type codes, references, IDs)
+// Layer 2 — Structural rules (indentation-based block shell)
+// Layer 3 — Field lines (name:type under sections)
+
+%import common.WS_INLINE
+%declare _INDENT _DEDENT
+
+// --- Layer 1: Lexical ---
+
+BLOCK_KW: "project"i | "domain"i | "entity"i | "state"i | "event"i
+        | "intent"i | "rule"i | "query"i | "action"i | "constraint"i
+        | "workflow"i | "error"i | "test"i | "capability"i | "view"i
+        | "deployment"i | "migration"i
+
+SECTION_KW.2: "fields"i | "indices"i | "input"i | "validate"i
+            | "process"i | "emit"i | "fail"i | "return"i | "when"i | "where"i
+            | "uses"i | "actions"i | "config"i | "states"i | "transitions"i
+            | "payload"i | "steps"i | "entity"i | "order_by"i | "limit"i
+            | "given"i | "expect"i | "changes"i | "affects"i | "domains"i
+            | "capabilities"i | "env"i | "services"i | "resources"i | "region"i
+            | "replicas"i | "from_version"i | "to_version"i | "breaking"i
+            | "expression"i | "check"i | "code"i | "http_status"i | "message"i
+            | "result"i | "query"i | "layout"i | "sla"i | "criticality"i | "owner"i
+
+NAME: /[A-Z][a-z][a-zA-Z0-9]*/
+ID: /[A-Z][A-Z0-9_]+/
+FIELD_NAME.1: /[a-z][a-z0-9_]*/
+TYPE_CODE: "s" | "i" | "f" | "b" | "t"
+REFERENCE: /@[A-Za-z]+\.[A-Za-z][a-zA-Z0-9]*/
+
+// --- Layer 2: Structural ---
+
+?start: block
+
+block: block_header _NEWLINE block_body
+
+block_header: BLOCK_KW NAME
+
+block_body: body_item*
+
+?body_item: top_field
+          | section
+          | _NEWLINE
+
+top_field: "id:" ID _NEWLINE
+         | "desc:" _NEWLINE desc_body
+
+desc_body: _INDENT desc_line+ _DEDENT
+         |
+
+desc_line: /[^\n]+/ _NEWLINE
+
+section: SECTION_KW ":" _NEWLINE section_body
+
+section_body: _INDENT section_line+ _DEDENT
+            |
+
+section_line: field_line _NEWLINE
+            | content_line _NEWLINE
+            | _NEWLINE
+
+// --- Layer 3: Field lines ---
+
+field_line: FIELD_NAME ":" type_spec
+
+type_spec: TYPE_CODE
+         | REFERENCE
+
+content_line: /[^\n]+/
+
+_NEWLINE: /(\r?\n[\t ]*)+/
+
+%ignore WS_INLINE

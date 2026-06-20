@@ -1,0 +1,10 @@
+entity Customer
+
+id: ENT_CUSTOMER_001
+desc:
+  Primary customer record.
+
+fields:
+  customer_id: s
+  email: s
+  active: b
