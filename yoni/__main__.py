@@ -15,6 +15,10 @@ def main(argv: list[str] | None = None) -> int:
         from yoni.planner.cli import main as plan_main
 
         return plan_main(args[1:])
+    if args and args[0] == "generate":
+        from yoni.generator.cli import main as generate_main
+
+        return generate_main(args[1:])
     from yoni.compile import main as compile_main
 
     return compile_main(args)

@@ -1,0 +1,79 @@
+{
+  "session_id": "gen_2e426727",
+  "scope": {
+    "targets": [
+      "INT_REGISTER_USER_001"
+    ],
+    "layers": [
+      "backend"
+    ],
+    "stack": "python"
+  },
+  "intent_ids": [
+    "INT_REGISTER_USER_001"
+  ],
+  "queue": [
+    {
+      "id": "job_001",
+      "type": "entity_schema",
+      "block": "ENT_CUSTOMER_001",
+      "intent": null,
+      "status": "pending",
+      "artifact": "generated/entities/customer.py",
+      "depends": []
+    },
+    {
+      "id": "job_002",
+      "type": "error_def",
+      "block": "ERR_EMAIL_EXISTS_001",
+      "intent": null,
+      "status": "pending",
+      "artifact": "generated/errors/email-already-exists.py",
+      "depends": []
+    },
+    {
+      "id": "job_003",
+      "type": "error_def",
+      "block": "ERR_INVALID_EMAIL_001",
+      "intent": null,
+      "status": "pending",
+      "artifact": "generated/errors/invalid-email.py",
+      "depends": []
+    },
+    {
+      "id": "job_004",
+      "type": "rule_impl",
+      "block": "RULE_ADULT_001",
+      "intent": null,
+      "status": "pending",
+      "artifact": "generated/rules/adult.py",
+      "depends": []
+    },
+    {
+      "id": "job_005",
+      "type": "constraint_impl",
+      "block": "CNST_EMAIL_UNIQUE_001",
+      "intent": null,
+      "status": "pending",
+      "artifact": "generated/constraints/email-unique.py",
+      "depends": []
+    },
+    {
+      "id": "job_006",
+      "type": "intent_handler",
+      "block": "INT_REGISTER_USER_001",
+      "intent": "INT_REGISTER_USER_001",
+      "status": "pending",
+      "artifact": "generated/intents/register-user.py",
+      "depends": [
+        "CNST_EMAIL_UNIQUE_001",
+        "ENT_CUSTOMER_001",
+        "ERR_EMAIL_EXISTS_001",
+        "ERR_INVALID_EMAIL_001",
+        "RULE_ADULT_001"
+      ]
+    }
+  ],
+  "created_at": "2026-06-21T06:58:20+00:00",
+  "updated_at": "2026-06-21T06:58:20+00:00"
+}

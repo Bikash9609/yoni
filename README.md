@@ -74,6 +74,8 @@ Cache artifacts land in `.ai/cache/`:
 | `.ai/cache/normalized/normalized.json` | Normalized workspace |
 | `.ai/cache/graph/graph.json` | Knowledge graph (nodes + edges) |
 | `.ai/generation/plans/` | Execution plans (one JSON per intent) |
+| `.ai/generation/session.json` | Active generation session + job queue |
+| `.ai/generation/manifest.json` | Block ID ↔ generated file registry |
 
 Run impact analysis before changing an entity or rule:
 
@@ -88,6 +90,16 @@ uv run python -m yoni plan INT_REGISTER_USER_001 --root samples/invoicing
 uv run python -m yoni plan --all --root samples/invoicing
 ```
 
+Prepare a scoped generation queue (no LLM execution yet):
+
+```bash
+uv run python -m yoni generate --intent INT_REGISTER_USER_001 --root samples/invoicing
+uv run python -m yoni generate --continue gen_abc --root samples/invoicing
+uv run python -m yoni generate --impact ENT_CUSTOMER_001 --root samples/invoicing
+```
+
+See [docs/05-code-generation-mechanism.md](./docs/05-code-generation-mechanism.md) for the full generation architecture.
+
 ---
 
 ## Compiler pipeline
@@ -97,7 +109,7 @@ The deterministic pipeline (no LLM) runs in this order:
 ```
 .yoni files → Parser → AST → Normalizer → Knowledge Graph → Validator → Impact Analyzer
                                                                               ↓
-                                                         Repair Engine → Execution Planner → Generator (LLM)
+                         Repair Engine → Execution Planner → Scope + Queue → Generator LLM
 ```
 
 | Stage | What it does | Status |
@@ -109,7 +121,8 @@ The deterministic pipeline (no LLM) runs in this order:
 | **Impact Analyzer** | Downstream blast radius for a block ID | ✅ |
 | **Repair Engine** | Deterministic spec patches from diagnostics | 🔜 |
 | **Execution Planner** | Ordered steps + artifacts per intent | ✅ |
-| **Generator** | Python, TS, SQL, infra, UI from valid specs | 🔜 |
+| **Generator (scope + queue)** | Scope resolver, job queue, session, manifest | ✅ |
+| **Generator (LLM execution)** | Python, TS, SQL, infra, UI from valid specs | 🔜 |
 
 LLM is used **only** for generation, repair suggestions, documentation, and migration strategy — never for parse/validate/graph steps.
 
@@ -279,9 +292,26 @@ uv run python -m yoni plan INT_REGISTER_USER_001 --root path/to/my-project
 
 Plans are written to `.ai/generation/plans/<INTENT_ID>.json` (steps + artifact list).
 
-### 11. Generate implementation (when generator lands)
+### 11. Prepare generation queue
 
-Generation runs **only after validation passes** and consumes execution plans. Output goes to `generated/` and can be deleted and regenerated at any time.
+After validation passes and plans exist, build a scoped job queue:
+
+```bash
+uv run python -m yoni generate --intent INT_REGISTER_USER_001 --root path/to/my-project
+```
+
+Writes `.ai/generation/session.json` (ordered jobs) and `.ai/generation/manifest.json` (artifact registry).
+
+Resume or regen after spec changes:
+
+```bash
+uv run python -m yoni generate --continue gen_abc --root path/to/my-project
+uv run python -m yoni generate --impact ENT_CUSTOMER_001 --root path/to/my-project
+```
+
+### 12. Generate implementation (LLM execution — upcoming)
+
+LLM job execution will consume the queue and write to `generated/`. Generated artifacts are disposable — Yoni remains truth.
 
 ---
 
@@ -480,7 +510,8 @@ Include:
 - [x] LSP + VS Code extension
 - [ ] Repair engine (deterministic patches)
 - [x] Execution planner + `yoni plan` CLI
-- [ ] Code generator (LLM-backed, spec-driven)
+- [x] Generator scope + queue + session + manifest + `yoni generate` CLI
+- [ ] Code generator LLM execution (entity templates, intent_handler, verifier)
 - [ ] Semantic diff
 
 ---

@@ -37,6 +37,25 @@ class GraphStore:
             return set()
         return nx.ancestors(self._nx, node_id)
 
+    def descendants(self, node_id: str) -> set[str]:
+        """Nodes reachable forward from node_id (excluding node_id)."""
+        if node_id not in self._nx:
+            return set()
+        return set(nx.descendants(self._nx, node_id))
+
+    def forward_reachable(self, node_id: str) -> set[str]:
+        """node_id plus all nodes reachable forward through outgoing edges."""
+        if node_id not in self._nx:
+            return {node_id}
+        return {node_id} | self.descendants(node_id)
+
+    def forward_closure(self, node_ids: list[str]) -> set[str]:
+        """Union of forward_reachable for each seed node."""
+        closure: set[str] = set()
+        for node_id in node_ids:
+            closure |= self.forward_reachable(node_id)
+        return closure
+
     def find_cycles(self, kinds: set[EdgeKind] | None = None) -> list[list[str]]:
         if kinds is None:
             simple = nx.simple_cycles(self._nx)

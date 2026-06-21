@@ -8,10 +8,20 @@ alwaysApply: true
 ## Pipeline (deterministic until generation)
 
 ```
-Parser → AST → Normalizer → Knowledge Graph → Validator → Impact Analyzer → Repair Engine → Execution Planner → Generator (LLM)
+Parser → AST → Normalizer → Knowledge Graph → Validator → Impact Analyzer → Repair Engine → Execution Planner → Scope + Queue → Generator (LLM)
 ```
 
 LLM is **only** for: generation, repair suggestions, documentation, migration strategy.
+
+## Generation workflow
+
+1. Validate workspace (`uv run python -m yoni <root>`)
+2. Plan intents (`uv run python -m yoni plan <INTENT_ID> --root <root>`)
+3. Prepare queue (`uv run python -m yoni generate --intent <INTENT_ID> --root <root>`)
+4. Execute jobs one at a time from `.ai/generation/session.json` (LLM step — upcoming)
+5. After spec changes: impact analysis → `yoni generate --impact <BLOCK_ID>`
+
+Queue and manifest live under `.ai/generation/`. See `docs/05-code-generation-mechanism.md`.
 
 ## Never
 
