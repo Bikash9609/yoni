@@ -1,0 +1,75 @@
+{
+  "name": "yoni",
+  "displayName": "Yoni",
+  "description": "Syntax highlighting and live lint for Yoni specification files",
+  "version": "0.1.0",
+  "publisher": "yoni",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters"
+  ],
+  "activationEvents": [
+    "onLanguage:yoni"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "yoni",
+        "aliases": [
+          "Yoni",
+          "yoni"
+        ],
+        "extensions": [
+          ".yoni",
+          ".yni",
+          ".yo"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "yoni",
+        "scopeName": "source.yoni",
+        "path": "./syntaxes/yoni.tmLanguage.json"
+      }
+    ],
+    "configuration": {
+      "title": "Yoni",
+      "properties": {
+        "yoni.pythonPath": {
+          "type": "string",
+          "default": "${workspaceFolder}/.venv/bin/python",
+          "description": "Python interpreter used to run the Yoni language server."
+        },
+        "yoni.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Traces communication between VS Code and the Yoni language server."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "vscode:prepublish": "yarn compile"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.3"
+  }
+}

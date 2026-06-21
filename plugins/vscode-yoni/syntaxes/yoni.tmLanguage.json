@@ -1,0 +1,108 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Yoni",
+  "scopeName": "source.yoni",
+  "patterns": [
+    { "include": "#block-header" },
+    { "include": "#top-level-keys" },
+    { "include": "#sections" },
+    { "include": "#references" },
+    { "include": "#strings" },
+    { "include": "#numbers" },
+    { "include": "#booleans" },
+    { "include": "#ids" },
+    { "include": "#process-ops" },
+    { "include": "#expect-ops" },
+    { "include": "#field-line" },
+    { "include": "#comments" }
+  ],
+  "repository": {
+    "block-header": {
+      "match": "^(?i)(project|domain|entity|state|event|intent|rule|query|action|constraint|workflow|error|test|capability|view|deployment|migration)\\s+([A-Z][a-zA-Z0-9_]*)\\s*$",
+      "captures": {
+        "1": { "name": "keyword.control.yoni" },
+        "2": { "name": "entity.name.type.yoni" }
+      }
+    },
+    "top-level-keys": {
+      "patterns": [
+        {
+          "match": "^(id|desc|limit|code|http_status|from_version|to_version|breaking|region|replicas|entity|uses|query|return|message):\\s*",
+          "captures": {
+            "1": { "name": "keyword.other.yoni" }
+          }
+        }
+      ]
+    },
+    "sections": {
+      "match": "^(?i)(fields|indices|input|validate|process|emit|fail|when|where|actions|config|states|transitions|payload|steps|order_by|given|expect|changes|affects|domains|capabilities|env|services|resources|expression|check|result|layout|sla|criticality|owner|entities|rules|events):\\s*$",
+      "captures": {
+        "1": { "name": "keyword.control.section.yoni" }
+      }
+    },
+    "references": {
+      "match": "@[A-Za-z][A-Za-z0-9_]*\\.[A-Za-z][A-Za-z0-9_]*",
+      "name": "support.type.property-name.yoni"
+    },
+    "strings": {
+      "patterns": [
+        {
+          "match": "\"(?:\\\\.|[^\"\\\\])*\"",
+          "name": "string.quoted.double.yoni"
+        }
+      ]
+    },
+    "numbers": {
+      "match": "\\b-?\\d+(?:\\.\\d+)?\\b",
+      "name": "constant.numeric.yoni"
+    },
+    "booleans": {
+      "match": "\\b(?i:true|false)\\b",
+      "name": "constant.language.boolean.yoni"
+    },
+    "ids": {
+      "patterns": [
+        {
+          "match": "\\b[A-Z][A-Z0-9_]+\\b",
+          "name": "variable.other.constant.yoni"
+        },
+        {
+          "match": ":\\s*([sifbt])\\b",
+          "captures": {
+            "1": { "name": "storage.type.yoni" }
+          }
+        },
+        {
+          "match": "\\b(?i:unique|nullable|secret|index|list|new|set|save|eq|emitted|AddField|->)\\b",
+          "name": "keyword.operator.yoni"
+        },
+        {
+          "match": "\\b[A-Z][a-zA-Z0-9_]*\\b",
+          "name": "entity.name.tag.yoni"
+        }
+      ]
+    },
+    "process-ops": {
+      "match": "^\\s*(?i:new|set|save)\\b",
+      "captures": {
+        "1": { "name": "keyword.control.flow.yoni" }
+      }
+    },
+    "expect-ops": {
+      "match": "^\\s*(?i:eq|emitted)\\b",
+      "captures": {
+        "1": { "name": "keyword.control.flow.yoni" }
+      }
+    },
+    "field-line": {
+      "match": "^\\s*([a-z_][a-z0-9_]*):\\s*",
+      "captures": {
+        "1": { "name": "variable.parameter.yoni" }
+      }
+    },
+    "comments": {
+      "match": "#.*$",
+      "name": "comment.line.number-sign.yoni"
+    }
+  }
+}

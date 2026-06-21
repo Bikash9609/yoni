@@ -1,0 +1,18 @@
+{
+  "comments": {
+    "lineComment": "#"
+  },
+  "brackets": [["(", ")"]],
+  "autoClosingPairs": [
+    { "open": "(", "close": ")" },
+    { "open": "\"", "close": "\"" }
+  ],
+  "surroundingPairs": [
+    { "open": "(", "close": ")" },
+    { "open": "\"", "close": "\"" }
+  ],
+  "indentationRules": {
+    "increaseIndentPattern": "^\\s*(desc|fields|indices|input|validate|process|emit|fail|when|where|actions|config|states|transitions|payload|steps|order_by|given|expect|changes|affects|domains|capabilities|env|services|resources|expression|check|result|layout|sla|criticality|owner|entities|rules|events):\\s*$",
+    "decreaseIndentPattern": "^\\s*$"
+  }
+}
