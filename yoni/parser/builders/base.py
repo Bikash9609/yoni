@@ -20,7 +20,6 @@ from yoni.ast.expr import (
     ProcessOp,
     StepDef,
     TransitionDef,
-    WhenDef,
 )
 from yoni.ast.query import QueryReturn
 from yoni.ast.types import FieldDef, IndexDef, Reference, TYPE_CODE_MAP, TypeCode
@@ -197,7 +196,9 @@ def parse_type_code(value: Any) -> TypeCode | None:
     return TYPE_CODE_MAP.get(text)
 
 
-def field_from_parts(name: str, type_value: Any, modifiers: list[Any] | None = None) -> FieldDef:
+def field_from_parts(
+    name: str, type_value: Any, modifiers: list[Any] | None = None
+) -> FieldDef:
     mods = {token_str(m).lower() for m in (modifiers or [])}
     field = FieldDef(
         name=name,

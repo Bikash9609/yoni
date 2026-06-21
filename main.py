@@ -12,13 +12,11 @@ from langchain_ollama.embeddings import OllamaEmbeddings
 from langchain_ollama import ChatOllama
 from langchain_community.document_loaders import PyPDFLoader, DirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_core.tools.retriever import create_retriever_tool
-from sentence_transformers import CrossEncoder
 
 
 from pydantic import BaseModel, Field
 
-from config import langchain, env
+from config import langchain
 from system_prompt import REWRITER_SYSTEM_PROMPT, SYSTEM_PROMPT
 from tools import get_retriever_tool, tools
 

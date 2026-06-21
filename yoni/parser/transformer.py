@@ -14,7 +14,6 @@ from yoni.ast.expr import (
     ExprRef,
     ExprValue,
     ExprVar,
-    OrderByDef,
     ProcessOp,
     StepDef,
     TransitionDef,
@@ -24,7 +23,11 @@ from yoni.ast.query import QueryReturn
 from yoni.ast.types import FieldDef, IndexDef, Reference, TYPE_CODE_MAP, TypeCode
 from yoni.errors import ParseError, missing_required_field
 from yoni.parser.builders import build_block
-from yoni.parser.builders.base import field_from_parts, make_binary, process_value_as_ast
+from yoni.parser.builders.base import (
+    field_from_parts,
+    make_binary,
+    process_value_as_ast,
+)
 from yoni.parser.draft import BlockDraft
 
 

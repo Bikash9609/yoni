@@ -21,7 +21,7 @@ from yoni.ast.query import QueryAST
 from yoni.ast.rule import RuleAST
 from yoni.ast.state import StateAST
 from yoni.ast.test import TestAST
-from yoni.ast.types import FieldDef, Reference
+from yoni.ast.types import FieldDef
 from yoni.ast.view import ViewAST
 from yoni.ast.workflow import WorkflowAST
 from yoni.errors import ParseError, unknown_block_kind
@@ -78,7 +78,9 @@ def build_block(draft: BlockDraft) -> tuple[YoniBlock | None, list[ParseError]]:
     builder = builders.get(draft.kind)
     if builder is None:
         errors.append(
-            unknown_block_kind(draft.kind.value, file=draft.file, block_id=draft.block_id)
+            unknown_block_kind(
+                draft.kind.value, file=draft.file, block_id=draft.block_id
+            )
         )
         return None, errors
     return builder(draft, errors)
@@ -93,7 +95,9 @@ def _base_kwargs(draft: BlockDraft) -> dict[str, Any]:
     }
 
 
-def _build_project(draft: BlockDraft, errors: list[ParseError]) -> tuple[ProjectAST | None, list[ParseError]]:
+def _build_project(
+    draft: BlockDraft, errors: list[ParseError]
+) -> tuple[ProjectAST | None, list[ParseError]]:
     return ProjectAST(
         **_base_kwargs(draft),
         domains=refs_from_section(draft.sections.get("domains", [])),
@@ -102,7 +106,9 @@ def _build_project(draft: BlockDraft, errors: list[ParseError]) -> tuple[Project
     ), errors
 
 
-def _build_domain(draft: BlockDraft, errors: list[ParseError]) -> tuple[DomainAST | None, list[ParseError]]:
+def _build_domain(
+    draft: BlockDraft, errors: list[ParseError]
+) -> tuple[DomainAST | None, list[ParseError]]:
     return DomainAST(
         **_base_kwargs(draft),
         entities=refs_from_section(draft.sections.get("entities", [])),
@@ -111,7 +117,9 @@ def _build_domain(draft: BlockDraft, errors: list[ParseError]) -> tuple[DomainAS
     ), errors
 
 
-def _build_entity(draft: BlockDraft, errors: list[ParseError]) -> tuple[EntityAST | None, list[ParseError]]:
+def _build_entity(
+    draft: BlockDraft, errors: list[ParseError]
+) -> tuple[EntityAST | None, list[ParseError]]:
     return EntityAST(
         **_base_kwargs(draft),
         fields=fields_from_section(draft.sections.get("fields", [])),
@@ -119,7 +127,9 @@ def _build_entity(draft: BlockDraft, errors: list[ParseError]) -> tuple[EntityAS
     ), errors
 
 
-def _build_state(draft: BlockDraft, errors: list[ParseError]) -> tuple[StateAST | None, list[ParseError]]:
+def _build_state(
+    draft: BlockDraft, errors: list[ParseError]
+) -> tuple[StateAST | None, list[ParseError]]:
     return StateAST(
         **_base_kwargs(draft),
         states=string_list_from_section(draft.sections.get("states", [])),
@@ -127,16 +137,22 @@ def _build_state(draft: BlockDraft, errors: list[ParseError]) -> tuple[StateAST 
     ), errors
 
 
-def _build_event(draft: BlockDraft, errors: list[ParseError]) -> tuple[EventAST | None, list[ParseError]]:
+def _build_event(
+    draft: BlockDraft, errors: list[ParseError]
+) -> tuple[EventAST | None, list[ParseError]]:
     return EventAST(
         **_base_kwargs(draft),
         payload=fields_from_section(draft.sections.get("payload", [])),
     ), errors
 
 
-def _build_intent(draft: BlockDraft, errors: list[ParseError]) -> tuple[IntentAST | None, list[ParseError]]:
+def _build_intent(
+    draft: BlockDraft, errors: list[ParseError]
+) -> tuple[IntentAST | None, list[ParseError]]:
     check_intent_section_order(draft, errors)
-    return_ref = scalar_ref(draft, "return") or single_ref(draft.sections.get("return", []))
+    return_ref = scalar_ref(draft, "return") or single_ref(
+        draft.sections.get("return", [])
+    )
     return IntentAST(
         **_base_kwargs(draft),
         inputs=fields_from_section(draft.sections.get("input", [])),
@@ -148,14 +164,18 @@ def _build_intent(draft: BlockDraft, errors: list[ParseError]) -> tuple[IntentAS
     ), errors
 
 
-def _build_rule(draft: BlockDraft, errors: list[ParseError]) -> tuple[RuleAST | None, list[ParseError]]:
+def _build_rule(
+    draft: BlockDraft, errors: list[ParseError]
+) -> tuple[RuleAST | None, list[ParseError]]:
     expression = expr_from_section(draft.sections.get("expression", []))
     if expression is None:
         expression = expr_from_section(draft.sections.get("when", []))
     return RuleAST(**_base_kwargs(draft), expression=expression), errors
 
 
-def _build_query(draft: BlockDraft, errors: list[ParseError]) -> tuple[QueryAST | None, list[ParseError]]:
+def _build_query(
+    draft: BlockDraft, errors: list[ParseError]
+) -> tuple[QueryAST | None, list[ParseError]]:
     entity = scalar_ref(draft, "entity") or single_ref(draft.sections.get("entity", []))
     return_spec = return_spec_from_scalar(draft.scalars.get("return"))
     if return_spec is None:
@@ -172,7 +192,9 @@ def _build_query(draft: BlockDraft, errors: list[ParseError]) -> tuple[QueryAST 
     ), errors
 
 
-def _build_action(draft: BlockDraft, errors: list[ParseError]) -> tuple[ActionAST | None, list[ParseError]]:
+def _build_action(
+    draft: BlockDraft, errors: list[ParseError]
+) -> tuple[ActionAST | None, list[ParseError]]:
     uses = scalar_ref(draft, "uses") or single_ref(draft.sections.get("uses", []))
     return ActionAST(
         **_base_kwargs(draft),
@@ -182,24 +204,32 @@ def _build_action(draft: BlockDraft, errors: list[ParseError]) -> tuple[ActionAS
     ), errors
 
 
-def _build_constraint(draft: BlockDraft, errors: list[ParseError]) -> tuple[ConstraintAST | None, list[ParseError]]:
+def _build_constraint(
+    draft: BlockDraft, errors: list[ParseError]
+) -> tuple[ConstraintAST | None, list[ParseError]]:
     entity = scalar_ref(draft, "entity") or single_ref(draft.sections.get("entity", []))
     check = expr_from_section(draft.sections.get("check", []))
     return ConstraintAST(**_base_kwargs(draft), entity=entity, check=check), errors
 
 
-def _build_workflow(draft: BlockDraft, errors: list[ParseError]) -> tuple[WorkflowAST | None, list[ParseError]]:
+def _build_workflow(
+    draft: BlockDraft, errors: list[ParseError]
+) -> tuple[WorkflowAST | None, list[ParseError]]:
     return WorkflowAST(
         **_base_kwargs(draft),
         steps=steps_from_section(draft.sections.get("steps", [])),
     ), errors
 
 
-def _build_error(draft: BlockDraft, errors: list[ParseError]) -> tuple[ErrorAST | None, list[ParseError]]:
+def _build_error(
+    draft: BlockDraft, errors: list[ParseError]
+) -> tuple[ErrorAST | None, list[ParseError]]:
     message = scalar_str(draft, "message")
     if not message:
         message_lines = draft.sections.get("message", [])
-        message = " ".join(str(line) for line in message_lines if isinstance(line, str)).strip()
+        message = " ".join(
+            str(line) for line in message_lines if isinstance(line, str)
+        ).strip()
     return ErrorAST(
         **_base_kwargs(draft),
         code=scalar_str(draft, "code"),
@@ -208,7 +238,9 @@ def _build_error(draft: BlockDraft, errors: list[ParseError]) -> tuple[ErrorAST 
     ), errors
 
 
-def _build_test(draft: BlockDraft, errors: list[ParseError]) -> tuple[TestAST | None, list[ParseError]]:
+def _build_test(
+    draft: BlockDraft, errors: list[ParseError]
+) -> tuple[TestAST | None, list[ParseError]]:
     when_lines = draft.sections.get("when", [])
     when: WhenDef | None = None
     if when_lines:
@@ -227,7 +259,9 @@ def _build_test(draft: BlockDraft, errors: list[ParseError]) -> tuple[TestAST | 
     ), errors
 
 
-def _build_capability(draft: BlockDraft, errors: list[ParseError]) -> tuple[CapabilityAST | None, list[ParseError]]:
+def _build_capability(
+    draft: BlockDraft, errors: list[ParseError]
+) -> tuple[CapabilityAST | None, list[ParseError]]:
     return CapabilityAST(
         **_base_kwargs(draft),
         actions=refs_from_section(draft.sections.get("actions", [])),
@@ -235,7 +269,9 @@ def _build_capability(draft: BlockDraft, errors: list[ParseError]) -> tuple[Capa
     ), errors
 
 
-def _build_view(draft: BlockDraft, errors: list[ParseError]) -> tuple[ViewAST | None, list[ParseError]]:
+def _build_view(
+    draft: BlockDraft, errors: list[ParseError]
+) -> tuple[ViewAST | None, list[ParseError]]:
     query = scalar_ref(draft, "query") or single_ref(draft.sections.get("query", []))
     field_lines = draft.sections.get("fields", [])
     fields: list[str] = []
@@ -255,7 +291,9 @@ def _build_view(draft: BlockDraft, errors: list[ParseError]) -> tuple[ViewAST | 
     ), errors
 
 
-def _build_deployment(draft: BlockDraft, errors: list[ParseError]) -> tuple[DeploymentAST | None, list[ParseError]]:
+def _build_deployment(
+    draft: BlockDraft, errors: list[ParseError]
+) -> tuple[DeploymentAST | None, list[ParseError]]:
     resources: dict[str, str | int | float] = {}
     for line in draft.sections.get("resources", []):
         if isinstance(line, tuple) and len(line) == 2:
@@ -271,7 +309,9 @@ def _build_deployment(draft: BlockDraft, errors: list[ParseError]) -> tuple[Depl
     ), errors
 
 
-def _build_migration(draft: BlockDraft, errors: list[ParseError]) -> tuple[MigrationAST | None, list[ParseError]]:
+def _build_migration(
+    draft: BlockDraft, errors: list[ParseError]
+) -> tuple[MigrationAST | None, list[ParseError]]:
     return MigrationAST(
         **_base_kwargs(draft),
         from_version=scalar_int(draft, "from_version"),
