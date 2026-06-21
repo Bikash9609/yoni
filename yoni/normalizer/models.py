@@ -30,6 +30,7 @@ class NormalizedBlock(BaseModel):
     file: FileContext
     body: dict = Field(default_factory=dict)
     refs: list[NormalizedRef] = Field(default_factory=list)
+    ast_ref: str = ""
 
 
 class NormalizedWorkspace(BaseModel):

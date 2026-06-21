@@ -7,10 +7,13 @@ def test_missing_desc() -> None:
     source = """entity Customer
 
 id: ENT_001
+
+fields:
+  id: s
 """
     result = parse_source(source)
-    assert not result.ok
-    assert any(e.code == "YONI1003" for e in result.errors)
+    assert result.ok, result.errors
+    assert result.ast.desc == ""
 
 
 def test_unknown_section() -> None:

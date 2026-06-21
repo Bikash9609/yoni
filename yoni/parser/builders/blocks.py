@@ -27,7 +27,6 @@ from yoni.ast.workflow import WorkflowAST
 from yoni.errors import ParseError, unknown_block_kind
 from yoni.parser.builders.base import (
     changes_from_section,
-    check_intent_section_order,
     check_mandatory_sections,
     env_from_section,
     expects_from_section,
@@ -40,7 +39,6 @@ from yoni.parser.builders.base import (
     process_ops_from_section,
     ref_link,
     ref_links_from_section,
-    require_id,
     return_spec_from_lines,
     return_spec_from_scalar,
     scalar_bool,
@@ -57,8 +55,6 @@ from yoni.parser.draft import BlockDraft
 
 def build_block(draft: BlockDraft) -> tuple[YoniBlock | None, list[ParseError]]:
     errors: list[ParseError] = list(draft.errors)
-    if not require_id(draft, errors):
-        return None, errors
 
     check_mandatory_sections(draft, errors)
 
@@ -166,7 +162,6 @@ def _build_event(
 def _build_intent(
     draft: BlockDraft, errors: list[ParseError]
 ) -> tuple[IntentAST | None, list[ParseError]]:
-    check_intent_section_order(draft, errors)
     return_spec = intent_return_from_scalar(draft.scalars.get("return"))
     if return_spec is None:
         ref = single_ref(draft.sections.get("return", []))

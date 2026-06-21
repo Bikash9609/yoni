@@ -2,17 +2,18 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from yoni.ast.types import RuntimeMetadata, SourceSpan
 
 
 class BlockBase(BaseModel):
-    """Universal block shape: id, name, version, desc, span, metadata."""
+    """Universal block shape: id, name, version, desc, span, metadata, children."""
 
-    id: str
+    id: str = ""
     name: str
     version: int = 1
     desc: str = ""
     span: SourceSpan | None = None
     metadata: RuntimeMetadata | None = None
+    children: list[str] = Field(default_factory=list)

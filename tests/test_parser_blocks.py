@@ -75,10 +75,19 @@ process:
 input:
 """
     from yoni import parse_source
+    from yoni.normalizer.run import normalize_workspace
+    from yoni.workspace.loader import ParsedFile, Workspace
 
     result = parse_source(source)
-    assert not result.ok
-    assert any(error.code == "YONI1007" for error in result.errors)
+    assert result.ok, result.errors
+    ws = Workspace(
+        root=".",
+        files=[ParsedFile(rel_path="intent.yoni", abs_path="intent.yoni", result=result)],
+    )
+    norm = normalize_workspace(ws)
+    body = norm.blocks["INT_BAD_001"].body
+    keys = [k for k in body if k in {"inputs", "process"}]
+    assert keys == ["inputs", "process"]
 
 
 def test_missing_id() -> None:
@@ -86,12 +95,29 @@ def test_missing_id() -> None:
 
 desc:
   No id.
+
+fields:
+  id: s
 """
     from yoni import parse_source
+    from yoni.normalizer.run import normalize_workspace
+    from yoni.workspace.loader import ParsedFile, Workspace
 
     result = parse_source(source)
-    assert not result.ok
-    assert any(error.code == "YONI1003" for error in result.errors)
+    assert result.ok, result.errors
+    assert result.ast.id == ""
+    ws = Workspace(
+        root=".",
+        files=[
+            ParsedFile(
+                rel_path="domains/customer/entities/customer.yoni",
+                abs_path="customer.yoni",
+                result=result,
+            )
+        ],
+    )
+    norm = normalize_workspace(ws)
+    assert any(bid.startswith("ENT_CUSTOMER_") for bid in norm.blocks)
 
 
 def test_syntax_error() -> None:

@@ -13,7 +13,7 @@ def test_normalize_entity_defaults() -> None:
     norm = normalize_workspace(ws)
     block = norm.blocks["ENT_CUSTOMER_001"]
     assert block.kind.value == "entity"
-    field = block.body["fields"][0]
+    field = next(f for f in block.body["fields"] if f["name"] == "customer_id")
     assert field["type"] == "string"
     assert field["nullable"] is False
 

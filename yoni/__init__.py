@@ -7,6 +7,8 @@ from yoni.errors import ParseError
 from yoni.graph.builder import build_graph
 from yoni.graph.models import Edge, EdgeKind, KnowledgeGraph, Node
 from yoni.impact.engine import ImpactResult, compute_impact
+from yoni.lexer import TokenInfo, tokenize
+from yoni.normalizer.canonical import emit_canonical, normalize_indent
 from yoni.normalizer.models import NormalizedBlock, NormalizedRef, NormalizedWorkspace
 from yoni.normalizer.run import normalize_workspace
 from yoni.parser.engine import build_parser, parse_file, parse_source
@@ -30,7 +32,10 @@ __all__ = [
     "Node",
     "ParseError",
     "ParseResult",
-    "ValidationError",
+    "TokenInfo",
+    "emit_canonical",
+    "normalize_indent",
+    "tokenize",
     "Workspace",
     "YoniBlock",
     "build_graph",

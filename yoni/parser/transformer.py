@@ -26,7 +26,7 @@ from yoni.ast.expr import (
 )
 from yoni.ast.query import QueryReturn
 from yoni.ast.types import FieldDef, IndexDef, Reference, TYPE_CODE_MAP, TypeCode
-from yoni.errors import ParseError, missing_required_field, unknown_section, duplicate_section
+from yoni.errors import ParseError, unknown_section, duplicate_section
 from yoni.parser.builders import build_block
 from yoni.parser.builders.base import (
     field_from_parts,
@@ -57,14 +57,6 @@ class YoniTransformer(Transformer):
         draft = BlockDraft(kind=kind, name=name, file=self.file)
         draft.span = _span(meta, self.file)
         self._collect_body(draft, body_items)
-        if not draft.block_id:
-            draft.errors.append(
-                missing_required_field("id", file=draft.file, block_id=draft.block_id)
-            )
-        if not draft.desc.strip():
-            draft.errors.append(
-                missing_required_field("desc", file=draft.file, block_id=draft.block_id)
-            )
         return build_block(draft)
 
     def block_header(self, items: list[Any]) -> tuple[BlockKind, str]:

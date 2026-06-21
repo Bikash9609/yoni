@@ -195,8 +195,10 @@ def build_graph(workspace: NormalizedWorkspace) -> KnowledgeGraph:
             id=block_id,
             kind=block.kind,
             name=block.name,
+            version=block.version,
             file=block.file.rel_path,
             domain=block.file.domain,
+            ast_ref=block.ast_ref,
         )
 
     for block_id, block in workspace.blocks.items():
@@ -266,7 +268,7 @@ def build_graph(workspace: NormalizedWorkspace) -> KnowledgeGraph:
             for ref in body.get("fail", []):
                 _add_edge(
                     edges,
-                    kind=EdgeKind.REFERENCES,
+                    kind=EdgeKind.FAILS,
                     source=block_id,
                     ref=ref,
                     workspace=workspace,
@@ -380,7 +382,7 @@ def build_graph(workspace: NormalizedWorkspace) -> KnowledgeGraph:
                 if intent:
                     _add_edge(
                         edges,
-                        kind=EdgeKind.TRIGGERS,
+                        kind=EdgeKind.DEPENDS_ON,
                         source=block_id,
                         ref=intent,
                         workspace=workspace,

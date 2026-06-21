@@ -20,14 +20,17 @@ class EdgeKind(str, Enum):
     OWNS = "OWNS"
     TRIGGERS = "TRIGGERS"
     CONSUMES = "CONSUMES"
+    FAILS = "FAILS"
 
 
 class Node(BaseModel):
     id: str
     kind: BlockKind
     name: str
+    version: int = 1
     file: str
     domain: str | None = None
+    ast_ref: str = ""
 
 
 class Edge(BaseModel):
