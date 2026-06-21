@@ -29,7 +29,9 @@ _ID_PREFIX: dict[BlockKind, str] = {
     BlockKind.MIGRATION: "MIG_",
 }
 
-_KEBAB = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*\.yoni$")
+_KEBAB = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*\.(yoni|yni|yo)$")
+_DOMAIN_FILES = frozenset({"domain.yoni", "domain.yni", "domain.yo"})
+_CAPABILITY_FILES = frozenset({"capability.yoni", "capability.yni", "capability.yo"})
 
 
 def check_naming(workspace: NormalizedWorkspace) -> list[ValidationError]:
@@ -45,7 +47,7 @@ def check_naming(workspace: NormalizedWorkspace) -> list[ValidationError]:
                 )
             )
         filename = block.file.rel_path.rsplit("/", 1)[-1]
-        if filename != "domain.yoni" and filename != "capability.yoni":
+        if filename not in _DOMAIN_FILES and filename not in _CAPABILITY_FILES:
             if not _KEBAB.match(filename):
                 errors.append(
                     non_kebab_filename(

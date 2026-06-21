@@ -4,20 +4,20 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from yoni.ast.block_base import BlockBase
 from yoni.ast.expr import ExprNode, OrderByDef
-from yoni.ast.types import RefLink, Reference
+from yoni.ast.types import RefLink, Reference, SpannedBase
 
 
-class QueryReturn(BaseModel):
+class QueryReturn(SpannedBase):
     type: str = "Entity"
     ref: Reference | None = None
     inner: Reference | None = None
 
 
-class IntentReturn(BaseModel):
+class IntentReturn(SpannedBase):
     type: str = "Entity"
     ref: Reference | None = None
 

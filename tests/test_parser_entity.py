@@ -4,7 +4,6 @@ from pathlib import Path
 
 from yoni import parse_file
 from yoni.ast.entity import EntityAST
-from yoni.ast.types import TypeCode
 
 FIXTURES = Path(__file__).parent / "fixtures"
 

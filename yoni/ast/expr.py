@@ -2,36 +2,36 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Any, Literal, Union
+from typing import Annotated, Literal, Union
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 
-from yoni.ast.types import Reference
+from yoni.ast.types import Reference, SpannedBase
 
 
-class ExprVar(BaseModel):
+class ExprVar(SpannedBase):
     kind: Literal["var"] = "var"
     name: str
 
 
-class ExprValue(BaseModel):
+class ExprValue(SpannedBase):
     kind: Literal["value"] = "value"
     value: str | int | float | bool
     type: str = "string"
 
 
-class ExprRef(BaseModel):
+class ExprRef(SpannedBase):
     kind: Literal["ref"] = "ref"
     ref: Reference
 
 
-class ExprCall(BaseModel):
+class ExprCall(SpannedBase):
     kind: Literal["call"] = "call"
     op: str
     args: list[ExprNode] = Field(default_factory=list)
 
 
-class ExprBinary(BaseModel):
+class ExprBinary(SpannedBase):
     kind: Literal["binary"] = "binary"
     op: str
     left: ExprNode
@@ -44,74 +44,74 @@ ExprNode = Annotated[
 ]
 
 
-class ProcessOp(BaseModel):
+class ProcessOp(SpannedBase):
     op: str
     target: str | None = None
     type_ref: Reference | None = None
     value: str | Reference | ExprNode | None = None
 
 
-class ExpectOp(BaseModel):
+class ExpectOp(SpannedBase):
     op: str
     left: str | None = None
     right: str | Reference | ExprNode | None = None
     event: Reference | None = None
 
 
-class OrderByDef(BaseModel):
+class OrderByDef(SpannedBase):
     field: str
     direction: str = "asc"
 
 
-class TransitionDef(BaseModel):
+class TransitionDef(SpannedBase):
     from_state: str
     to_state: str
 
 
-class StepInputValue(BaseModel):
+class StepInputValue(SpannedBase):
     step: str | None = None
     field: str | None = None
     ref: Reference | None = None
     literal: str | int | float | bool | None = None
 
 
-class StepInput(BaseModel):
+class StepInput(SpannedBase):
     name: str
     value: StepInputValue | Reference | str | int | float | bool
 
 
-class StepDef(BaseModel):
+class StepDef(SpannedBase):
     name: str
     intent: Reference
     inputs: list[StepInput] = Field(default_factory=list)
 
 
-class WhenInput(BaseModel):
+class WhenInput(SpannedBase):
     name: str
     value: Reference | str | int | float | bool | ExprNode
 
 
-class WhenDef(BaseModel):
+class WhenDef(SpannedBase):
     intent: Reference | None = None
     inputs: list[WhenInput] = Field(default_factory=list)
 
 
-class EnvDef(BaseModel):
+class EnvDef(SpannedBase):
     entries: dict[str, str | int | bool | Reference] = Field(default_factory=dict)
 
 
-class LayoutDef(BaseModel):
+class LayoutDef(SpannedBase):
     entries: dict[str, str | int | bool] = Field(default_factory=dict)
 
 
-class MigrationField(BaseModel):
+class MigrationField(SpannedBase):
     name: str
     type: str | None = None
     type_code: str | None = None
     nullable: bool = False
 
 
-class ChangeDef(BaseModel):
+class ChangeDef(SpannedBase):
     change_type: str
     entity: Reference | None = None
     field: MigrationField | None = None

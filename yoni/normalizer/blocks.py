@@ -20,7 +20,7 @@ from yoni.ast.query import QueryAST
 from yoni.ast.rule import RuleAST
 from yoni.ast.state import StateAST
 from yoni.ast.test import TestAST
-from yoni.ast.types import FieldDef, IndexDef, RefLink
+from yoni.ast.types import FieldDef, RefLink
 from yoni.ast.view import ViewAST
 from yoni.ast.workflow import WorkflowAST
 from yoni.normalizer.expr import normalize_expr, normalize_process_op, ref_from_reference

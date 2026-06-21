@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from pydantic import BaseModel
+
 from lark import Token, Transformer, v_args
 
 from yoni.ast.base import BlockKind, YoniBlock
@@ -19,7 +21,6 @@ from yoni.ast.expr import (
     OrderByDef,
     ProcessOp,
     StepDef,
-    StepInput,
     TransitionDef,
     WhenDef,
 )
@@ -30,7 +31,6 @@ from yoni.parser.builders import build_block
 from yoni.parser.builders.base import (
     field_from_parts,
     make_binary,
-    parse_step_input_value,
     process_value_as_ast,
     strip_quotes,
 )
@@ -175,17 +175,19 @@ class YoniTransformer(Transformer):
     def section_line(self, items: list[Any]) -> Any:
         return items[0] if items else None
 
-    def field_line(self, items: list[Any]) -> FieldDef:
+    @v_args(meta=True)
+    def field_line(self, meta: Any, items: list[Any]) -> FieldDef:
         name = str(items[0])
         type_value = items[1]
         modifiers = items[2:] if len(items) > 2 else []
-        return field_from_parts(name, type_value, modifiers)
+        return _with_span(field_from_parts(name, type_value, modifiers), meta, self.file)
 
     def field_modifier(self, items: list[Any]) -> str:
         return str(items[0]).lower()
 
-    def index_line(self, items: list[Any]) -> IndexDef:
-        return IndexDef(field=str(items[0]), type=str(items[1]).lower())
+    @v_args(meta=True)
+    def index_line(self, meta: Any, items: list[Any]) -> IndexDef:
+        return _with_span(IndexDef(field=str(items[0]), type=str(items[1]).lower()), meta, self.file)
 
     def name_line(self, items: list[Any]) -> str:
         return str(items[0])
@@ -371,7 +373,15 @@ class YoniTransformer(Transformer):
 
     @v_args(inline=True)
     def REFERENCE(self, token: Token) -> Reference:
-        return Reference.parse(str(token))
+        ref = Reference.parse(str(token))
+        span = SourceSpan(
+            file=self.file,
+            start_line=token.line or 0,
+            end_line=getattr(token, "end_line", None) or token.line or 0,
+            start_column=token.column or 0,
+            end_column=getattr(token, "end_column", None) or token.column or 0,
+        )
+        return ref.model_copy(update={"span": span})
 
     def eq_expr(self, items: list[Any]) -> ExprBinary:
         return make_binary("==", items[0], items[-1])
@@ -504,15 +514,34 @@ def _span(meta: Any, file: str) -> SourceSpan | None:
     )
 
 
+def _with_span(obj: Any, meta: Any, file: str) -> Any:
+    span = _span(meta, file)
+    if span is None or not isinstance(obj, BaseModel):
+        return obj
+    if "span" not in type(obj).model_fields:
+        return obj
+    return obj.model_copy(update={"span": span})
+
+
+def _wrap_spanned_rule(method_name: str):
+    original = getattr(YoniTransformer, method_name)
+
+    @v_args(meta=True)
+    def wrapped(self, meta: Any, items: list[Any]) -> Any:
+        return _with_span(original(self, items), meta, self.file)
+
+    wrapped.__name__ = method_name
+    return wrapped
+
+
 _EXPR_RULES = (
     "eq_expr", "ne_expr", "ge_expr", "le_expr", "gt_expr", "lt_expr",
     "add_expr", "sub_expr", "mul_expr", "div_expr", "factor", "paren_factor",
     "call_expr", "number_atom", "bool_atom", "string_atom", "ref_atom",
     "var_atom", "enum_atom",
 )
+
 for _rule in _EXPR_RULES:
-    setattr(
-        YoniTransformer,
-        f"expressions__{_rule}",
-        getattr(YoniTransformer, _rule),
-    )
+    spanned = _wrap_spanned_rule(_rule)
+    setattr(YoniTransformer, _rule, spanned)
+    setattr(YoniTransformer, f"expressions__{_rule}", spanned)

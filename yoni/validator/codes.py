@@ -140,3 +140,32 @@ def breaking_migration_incomplete(
         block_id=block_id,
         suggestion="Add non-empty changes: and affects: sections.",
     )
+
+
+def string_ref_forbidden(
+    value: str,
+    *,
+    file: str = "",
+    block_id: str | None = None,
+) -> ValidationError:
+    return ValidationError(
+        code="YONI2010",
+        message=f"String reference forbidden: {value!r}; use @Type.Name",
+        file=file,
+        block_id=block_id,
+        suggestion="Replace the string with a typed reference such as @Entity.Customer.",
+    )
+
+
+def breaking_change_without_migration(
+    block_id: str,
+    *,
+    file: str = "",
+) -> ValidationError:
+    return ValidationError(
+        code="YONI2011",
+        message=f"Version bump on {block_id} requires a migration block",
+        file=file,
+        block_id=block_id,
+        suggestion="Add a migration with breaking: true, changes:, and affects: listing this block.",
+    )

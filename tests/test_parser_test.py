@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from yoni import parse_file
-from yoni.ast.expr import ExprValue, ExpectOp, ProcessOp
+from yoni.ast.expr import ExprValue, ProcessOp
 from yoni.ast.test import TestAST
 
 FIXTURES = Path(__file__).parent / "fixtures"

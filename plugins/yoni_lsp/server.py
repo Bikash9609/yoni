@@ -9,7 +9,6 @@ from pygls.lsp.server import LanguageServer
 
 from yoni import parse_source
 from yoni.diagnostics import Diagnostic
-from yoni.errors import ParseError
 from yoni.pipeline import compile_workspace
 from yoni.validator.models import ValidationError
 

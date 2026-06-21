@@ -39,6 +39,33 @@ def syntax_error(
     )
 
 
+def unexpected_token(
+    token: str,
+    *,
+    expected: str | None = None,
+    file: str = "",
+    line: int | None = None,
+    column: int | None = None,
+    block_id: str | None = None,
+) -> ParseError:
+    """YONI1002 — Unexpected token at a specific source location."""
+    location = ""
+    if line is not None:
+        location = f" at line {line}"
+        if column is not None:
+            location += f", column {column}"
+    hint = f" Expected: {expected}." if expected else ""
+    return ParseError(
+        code="YONI1002",
+        message=f"Unexpected token {token!r}{location}.{hint}",
+        file=file,
+        line=line,
+        column=column,
+        block_id=block_id,
+        suggestion="Check indentation, section headers, and typed @Type.Name references.",
+    )
+
+
 def missing_required_field(
     field: str,
     *,

@@ -44,7 +44,13 @@ class SourceSpan(BaseModel):
     end_column: int = 0
 
 
-class Reference(BaseModel):
+class SpannedBase(BaseModel):
+    """Optional source span for nested AST nodes."""
+
+    span: SourceSpan | None = None
+
+
+class Reference(SpannedBase):
     """Typed reference such as @Entity.Customer."""
 
     kind: str
@@ -66,7 +72,7 @@ class Reference(BaseModel):
         return cls(kind=kind, name=name, path=path, raw=text)
 
 
-class RefLink(BaseModel):
+class RefLink(SpannedBase):
     """Spec JSON wrapper for typed references: {"ref": "..."}."""
 
     ref: Reference
@@ -80,7 +86,7 @@ class RuntimeMetadata(BaseModel):
     owner: str | None = None
 
 
-class FieldDef(BaseModel):
+class FieldDef(SpannedBase):
     """Field declaration inside entity fields or intent input sections."""
 
     name: str
@@ -102,14 +108,14 @@ class FieldDef(BaseModel):
         return "unknown"
 
 
-class IndexDef(BaseModel):
+class IndexDef(SpannedBase):
     """Entity index declaration."""
 
     field: str
     type: str = "unique"
 
 
-class RawLine(BaseModel):
+class RawLine(SpannedBase):
     """Unstructured line captured from a section body (process, when, etc.)."""
 
     text: str = Field(default="", description="Raw source line content")

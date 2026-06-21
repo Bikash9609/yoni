@@ -7,10 +7,10 @@ from importlib import resources
 from pathlib import Path
 
 from lark import Lark
-from lark.exceptions import LarkError
+from lark.exceptions import LarkError, UnexpectedCharacters, UnexpectedToken
 
 from yoni.ast.base import ParseResult, YoniBlock
-from yoni.errors import syntax_error, tab_in_indent
+from yoni.errors import syntax_error, tab_in_indent, unexpected_token
 from yoni.parser.indenter import YoniIndenter
 from yoni.parser.transformer import YoniTransformer
 
@@ -41,6 +41,37 @@ def parse_source(source: str, *, file: str = "<stdin>") -> ParseResult[YoniBlock
     indenter.tab_errors.clear()
     try:
         tree = parser.parse(source)
+    except UnexpectedToken as exc:
+        expected = ", ".join(sorted(exc.expected)) if exc.expected else None
+        token_text = str(exc.token) if exc.token else "?"
+        return ParseResult(
+            ast=None,
+            errors=[
+                syntax_error(
+                    f"Unexpected token {token_text!r} at line {exc.line}, column {exc.column}."
+                    + (f" Expected: {expected}." if expected else ""),
+                    file=file,
+                    line=exc.line,
+                    column=exc.column,
+                )
+            ],
+            source=source,
+            file=file,
+        )
+    except UnexpectedCharacters as exc:
+        return ParseResult(
+            ast=None,
+            errors=[
+                unexpected_token(
+                    exc.char,
+                    file=file,
+                    line=exc.line,
+                    column=exc.column,
+                )
+            ],
+            source=source,
+            file=file,
+        )
     except LarkError as exc:
         return ParseResult(
             ast=None,

@@ -201,4 +201,7 @@ scalar_value: SCALAR_TEXT | STRING | ID | REFERENCE | BOOL | CNAME
 
 _NEWLINE: /(\r?\n[\t ]*)+/
 
+COMMENT: /#[^\n]*/
+
 %ignore WS_INLINE
+%ignore COMMENT

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import networkx as nx
 
-from yoni.graph.models import Edge, EdgeKind, KnowledgeGraph, Node
+from yoni.graph.models import Edge, EdgeKind, KnowledgeGraph
 
 
 class GraphStore:
@@ -38,7 +38,6 @@ class GraphStore:
         return nx.ancestors(self._nx, node_id)
 
     def find_cycles(self, kinds: set[EdgeKind] | None = None) -> list[list[str]]:
-        cycles: list[list[str]] = []
         if kinds is None:
             simple = nx.simple_cycles(self._nx)
             return [list(c) for c in simple]

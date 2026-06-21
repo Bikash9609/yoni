@@ -33,9 +33,11 @@ def _path_ok(kind: BlockKind, rel_path: str) -> bool:
     if kind == BlockKind.PROJECT:
         return path.startswith("project/")
     if kind == BlockKind.DOMAIN:
-        return path.endswith("/domain.yoni") and path.startswith("domains/")
+        return path.endswith(("/domain.yoni", "/domain.yni", "/domain.yo")) and path.startswith("domains/")
     if kind == BlockKind.CAPABILITY:
-        return path.startswith("capabilities/") and path.endswith("/capability.yoni")
+        return path.startswith("capabilities/") and path.endswith(
+            ("/capability.yoni", "/capability.yni", "/capability.yo")
+        )
     if kind == BlockKind.VIEW:
         return path.startswith("views/")
     if kind == BlockKind.DEPLOYMENT:

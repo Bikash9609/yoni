@@ -1,8 +1,6 @@
 """Expression parsing edge cases."""
 
 from yoni import parse_source
-from yoni.ast.expr import ExprCall, ExprRef, ExprValue, ExprVar
-from yoni.ast.rule import RuleAST
 
 
 def test_expr_refs_and_ops() -> None:

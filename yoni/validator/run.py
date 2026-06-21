@@ -11,6 +11,8 @@ from yoni.validator.rules.evolution import check_evolution
 from yoni.validator.rules.naming import check_naming
 from yoni.validator.rules.references import check_references
 from yoni.validator.rules.repository import check_repository
+from yoni.validator.rules.string_refs import check_string_refs
+from yoni.workspace.loader import Workspace
 
 
 def validate_workspace(
@@ -23,6 +25,7 @@ def validate_workspace(
     errors.extend(check_naming(workspace))
     errors.extend(check_repository(workspace))
     errors.extend(check_references(workspace, graph))
+    errors.extend(check_string_refs(workspace))
     errors.extend(check_cycles(workspace, graph))
     errors.extend(check_evolution(workspace))
     return errors

@@ -27,6 +27,8 @@ _TOP_FOLDERS: dict[str, BlockKind | None] = {
     "migrations": BlockKind.MIGRATION,
 }
 
+_DOMAIN_FILES = frozenset({"domain.yoni", "domain.yni", "domain.yo"})
+
 
 def infer_file_context(rel_path: str) -> tuple[str | None, str | None]:
     parts = rel_path.replace("\\", "/").split("/")
@@ -36,7 +38,7 @@ def infer_file_context(rel_path: str) -> tuple[str | None, str | None]:
     if len(parts) >= 2 and parts[0] == "domains":
         domain = parts[1]
         if len(parts) >= 3:
-            if parts[2] == "domain.yoni":
+            if parts[2] in _DOMAIN_FILES:
                 folder_role = "domain"
             elif parts[2] in _DOMAIN_ROLES:
                 folder_role = parts[2]

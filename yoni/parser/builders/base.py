@@ -20,11 +20,8 @@ from yoni.ast.expr import (
     OrderByDef,
     ProcessOp,
     StepDef,
-    StepInput,
     StepInputValue,
     TransitionDef,
-    WhenDef,
-    WhenInput,
 )
 from yoni.ast.query import IntentReturn, QueryReturn
 from yoni.ast.types import FieldDef, IndexDef, RefLink, Reference, TYPE_CODE_MAP, TypeCode
@@ -34,7 +31,7 @@ from yoni.errors import (
     section_order_violation,
 )
 from yoni.parser.draft import BlockDraft
-from yoni.parser.sections import ALLOWED_SECTIONS, MANDATORY_SECTIONS
+from yoni.parser.sections import MANDATORY_SECTIONS
 
 INTENT_SECTION_ORDER = ("input", "validate", "process", "emit", "fail", "return")
 

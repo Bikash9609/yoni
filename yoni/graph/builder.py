@@ -97,6 +97,95 @@ def _domain_block_for_path(workspace: NormalizedWorkspace, domain: str) -> str |
     return None
 
 
+def _is_ref_dict(value: object) -> bool:
+    return (
+        isinstance(value, dict)
+        and "kind" in value
+        and "name" in value
+        and value.get("kind") not in {"value", "var", "call", "binary", "ref", "state_ref"}
+    )
+
+
+def _iter_normalized_refs(obj: object) -> list[dict]:
+    refs: list[dict] = []
+    if _is_ref_dict(obj):
+        refs.append(obj)
+        return refs
+    if isinstance(obj, dict):
+        if obj.get("kind") == "ref" and isinstance(obj.get("ref"), dict):
+            refs.append(obj["ref"])
+        for value in obj.values():
+            refs.extend(_iter_normalized_refs(value))
+    elif isinstance(obj, list):
+        for item in obj:
+            refs.extend(_iter_normalized_refs(item))
+    return refs
+
+
+def _add_body_refs(
+    edges: list[Edge],
+    *,
+    source: str,
+    obj: object,
+    workspace: NormalizedWorkspace,
+    domain: str | None,
+    edge_kind: EdgeKind = EdgeKind.REFERENCES,
+) -> None:
+    for ref in _iter_normalized_refs(obj):
+        kind = EdgeKind.TRIGGERS if ref.get("kind") == "Intent" else edge_kind
+        _add_edge(
+            edges,
+            kind=kind,
+            source=source,
+            ref=ref,
+            workspace=workspace,
+            domain=domain,
+        )
+
+
+def _add_field_refs(
+    edges: list[Edge],
+    *,
+    source: str,
+    fields: list[dict],
+    workspace: NormalizedWorkspace,
+    domain: str | None,
+) -> None:
+    for field in fields:
+        ref = field.get("ref")
+        if ref:
+            _add_edge(
+                edges,
+                kind=EdgeKind.REFERENCES,
+                source=source,
+                ref=ref,
+                workspace=workspace,
+                domain=domain,
+            )
+
+
+def _add_env_refs(
+    edges: list[Edge],
+    *,
+    source: str,
+    env: dict | None,
+    workspace: NormalizedWorkspace,
+    domain: str | None,
+) -> None:
+    if not env:
+        return
+    for value in env.get("entries", {}).values():
+        if _is_ref_dict(value):
+            _add_edge(
+                edges,
+                kind=EdgeKind.REFERENCES,
+                source=source,
+                ref=value,
+                workspace=workspace,
+                domain=domain,
+            )
+
+
 def build_graph(workspace: NormalizedWorkspace) -> KnowledgeGraph:
     nodes: dict[str, Node] = {}
     edges: list[Edge] = []
@@ -120,6 +209,13 @@ def build_graph(workspace: NormalizedWorkspace) -> KnowledgeGraph:
                 _add_edge(edges, kind=EdgeKind.OWNS, source=block_id, ref=ref, workspace=workspace)
             for ref in body.get("capabilities", []):
                 _add_edge(edges, kind=EdgeKind.OWNS, source=block_id, ref=ref, workspace=workspace)
+            _add_env_refs(
+                edges,
+                source=block_id,
+                env=body.get("env"),
+                workspace=workspace,
+                domain=domain,
+            )
 
         elif kind == BlockKind.DOMAIN:
             for key, edge_kind in (
@@ -221,6 +317,41 @@ def build_graph(workspace: NormalizedWorkspace) -> KnowledgeGraph:
                     workspace=workspace,
                     domain=domain,
                 )
+            _add_field_refs(
+                edges,
+                source=block_id,
+                fields=body.get("inputs", []) + body.get("result", []),
+                workspace=workspace,
+                domain=domain,
+            )
+
+        elif kind == BlockKind.ENTITY:
+            _add_field_refs(
+                edges,
+                source=block_id,
+                fields=body.get("fields", []),
+                workspace=workspace,
+                domain=domain,
+            )
+
+        elif kind == BlockKind.RULE:
+            _add_body_refs(
+                edges,
+                source=block_id,
+                obj=body.get("expression"),
+                workspace=workspace,
+                domain=domain,
+                edge_kind=EdgeKind.REFERENCES,
+            )
+
+        elif kind == BlockKind.EVENT:
+            _add_field_refs(
+                edges,
+                source=block_id,
+                fields=body.get("payload", []),
+                workspace=workspace,
+                domain=domain,
+            )
 
         elif kind == BlockKind.VIEW:
             query = body.get("query")
@@ -357,6 +488,13 @@ def build_graph(workspace: NormalizedWorkspace) -> KnowledgeGraph:
                     workspace=workspace,
                     domain=domain,
                 )
+            _add_env_refs(
+                edges,
+                source=block_id,
+                env=body.get("env"),
+                workspace=workspace,
+                domain=domain,
+            )
 
         if block.file.domain and kind not in (BlockKind.DOMAIN, BlockKind.PROJECT):
             domain_id = _domain_block_for_path(workspace, block.file.domain)

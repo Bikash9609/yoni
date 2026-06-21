@@ -1,4 +1,4 @@
-"""Scan a Yoni project tree and parse all .yoni files."""
+"""Scan a Yoni project tree and parse all .yoni / .yni / .yo files."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ from yoni.errors import ParseError
 from yoni.parser.engine import parse_file
 
 _SKIP_PARTS = frozenset({".ai", "generated"})
+_YONI_EXTENSIONS = (".yoni", ".yni", ".yo")
 
 
 class ParsedFile(BaseModel):
@@ -42,7 +43,10 @@ def _should_skip(path: Path) -> bool:
 def load_workspace(root: Path | str) -> Workspace:
     project_root = Path(root).resolve()
     files: list[ParsedFile] = []
-    for source in sorted(project_root.rglob("*.yoni")):
+    sources: list[Path] = []
+    for ext in _YONI_EXTENSIONS:
+        sources.extend(project_root.rglob(f"*{ext}"))
+    for source in sorted(sources):
         if _should_skip(source):
             continue
         rel = str(source.relative_to(project_root))
