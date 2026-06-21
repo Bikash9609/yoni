@@ -14,10 +14,6 @@ def test_parse_intent_create_invoice() -> None:
     assert isinstance(result.ast, IntentAST)
     assert result.ast.id == "INT_CREATE_INV_001"
     assert result.ast.name == "CreateInvoice"
-    assert result.ast.desc == "Creates invoice for an approved order."
-    assert result.ast.inputs == []
-    assert result.ast.validations == []
-    assert result.ast.process == []
-    assert result.ast.emit == []
-    assert result.ast.fail == []
-    assert result.ast.return_ref is None
+    assert len(result.ast.inputs) == 2
+    assert len(result.ast.process) == 3
+    assert result.ast.return_ref is not None

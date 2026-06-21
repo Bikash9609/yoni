@@ -1,11 +1,8 @@
 // Yoni Language Grammar (v1)
 // Pipeline step: Parser → AST (see docs/03-final-yoni-specs.md)
-//
-// Layer 1 — Lexical tokens (block keywords, type codes, references, IDs)
-// Layer 2 — Structural rules (indentation-based block shell)
-// Layer 3 — Field lines (name:type under sections)
 
 %import common.WS_INLINE
+%import .expressions (EQ, NE, GE, LE, GT, LT, NUMBER, BOOL, STRING, DOTTED_NAME, CNAME, REFERENCE, PASCAL_NAME, expr, comparison, arith, term, factor, atom)
 %declare _INDENT _DEDENT
 
 // --- Layer 1: Lexical ---
@@ -15,21 +12,27 @@ BLOCK_KW: "project"i | "domain"i | "entity"i | "state"i | "event"i
         | "workflow"i | "error"i | "test"i | "capability"i | "view"i
         | "deployment"i | "migration"i
 
-SECTION_KW.2: "fields"i | "indices"i | "input"i | "validate"i
-            | "process"i | "emit"i | "fail"i | "return"i | "when"i | "where"i
-            | "uses"i | "actions"i | "config"i | "states"i | "transitions"i
-            | "payload"i | "steps"i | "entity"i | "order_by"i | "limit"i
-            | "given"i | "expect"i | "changes"i | "affects"i | "domains"i
-            | "capabilities"i | "env"i | "services"i | "resources"i | "region"i
-            | "replicas"i | "from_version"i | "to_version"i | "breaking"i
-            | "expression"i | "check"i | "code"i | "http_status"i | "message"i
-            | "result"i | "query"i | "layout"i | "sla"i | "criticality"i | "owner"i
+SECTION_KW.3: "fields"i | "indices"i | "input"i | "validate"i
+            | "process"i | "emit"i | "fail"i | "when"i | "where"i
+            | "actions"i | "config"i | "states"i | "transitions"i
+            | "payload"i | "steps"i | "order_by"i | "given"i | "expect"i
+            | "changes"i | "affects"i | "domains"i | "capabilities"i
+            | "env"i | "services"i | "resources"i | "expression"i
+            | "check"i | "result"i | "layout"i | "sla"i
+            | "criticality"i | "owner"i | "entities"i | "rules"i | "events"i
 
-NAME: /[A-Z][a-z][a-zA-Z0-9]*/
 ID: /[A-Z][A-Z0-9_]+/
-FIELD_NAME.1: /[a-z][a-z0-9_]*/
 TYPE_CODE: "s" | "i" | "f" | "b" | "t"
-REFERENCE: /@[A-Za-z]+\.[A-Za-z][a-zA-Z0-9]*/
+INDEX_TYPE: "unique" | "index"
+FIELD_MODIFIER.3: "unique"i | "nullable"i | "secret"i
+ARROW: "->"
+PROCESS_NEW.3: "new"i
+PROCESS_SET.3: "set"i
+PROCESS_SAVE.3: "save"i
+EXPECT_EQ.3: "eq"i
+EXPECT_EMITTED.3: "emitted"i
+WHEN_INTENT.3: "intent"i
+SCALAR_TEXT.2: /[a-zA-Z0-9_.-]+/
 
 // --- Layer 2: Structural ---
 
@@ -37,16 +40,46 @@ REFERENCE: /@[A-Za-z]+\.[A-Za-z][a-zA-Z0-9]*/
 
 block: block_header _NEWLINE block_body
 
-block_header: BLOCK_KW NAME
+block_header: BLOCK_KW PASCAL_NAME
 
 block_body: body_item*
 
-?body_item: top_field
+?body_item: top_id
+          | top_desc
+          | top_limit
+          | top_code
+          | top_http_status
+          | top_from_version
+          | top_to_version
+          | top_breaking
+          | top_region
+          | top_replicas
+          | top_entity
+          | top_uses
+          | top_query
+          | top_return
+          | top_message
           | section
           | _NEWLINE
 
-top_field: "id:" ID _NEWLINE
-         | "desc:" _NEWLINE desc_body
+top_id: "id:" ID _NEWLINE
+top_desc: "desc:" _NEWLINE desc_body
+top_limit: "limit:" NUMBER _NEWLINE
+top_code: "code:" ID _NEWLINE
+top_http_status: "http_status:" NUMBER _NEWLINE
+top_from_version: "from_version:" NUMBER _NEWLINE
+top_to_version: "to_version:" NUMBER _NEWLINE
+top_breaking: "breaking:" BOOL _NEWLINE
+top_region: "region:" scalar_value _NEWLINE
+top_replicas: "replicas:" NUMBER _NEWLINE
+top_entity: "entity:" REFERENCE _NEWLINE
+top_uses: "uses:" REFERENCE _NEWLINE
+top_query: "query:" REFERENCE _NEWLINE
+top_return: "return:" return_spec _NEWLINE
+top_message: "message:" scalar_value _NEWLINE
+
+return_spec: REFERENCE
+           | "list" "[" REFERENCE "]"
 
 desc_body: _INDENT desc_line+ _DEDENT
          |
@@ -58,16 +91,75 @@ section: SECTION_KW ":" _NEWLINE section_body
 section_body: _INDENT section_line+ _DEDENT
             |
 
-section_line: field_line _NEWLINE
+section_line: expr_line _NEWLINE
+            | process_line _NEWLINE
+            | state_line _NEWLINE
+            | transition_line _NEWLINE
+            | step_line _NEWLINE
+            | ref_line _NEWLINE
+            | expect_line _NEWLINE
+            | when_line _NEWLINE
+            | change_line _NEWLINE
+            | field_line _NEWLINE
+            | index_line _NEWLINE
+            | kv_line _NEWLINE
             | content_line _NEWLINE
             | _NEWLINE
 
-// --- Layer 3: Field lines ---
+// --- Layer 3: Section line rules ---
 
-field_line: FIELD_NAME ":" type_spec
+field_line.10: CNAME ":" type_spec field_modifier*
 
-type_spec: TYPE_CODE
-         | REFERENCE
+field_modifier: FIELD_MODIFIER
+
+index_line: CNAME ":" INDEX_TYPE
+
+ref_line.10: REFERENCE
+
+process_new: PROCESS_NEW CNAME REFERENCE
+process_set: PROCESS_SET DOTTED_NAME process_value
+process_save: PROCESS_SAVE CNAME
+
+?process_line: process_new
+              | process_set
+              | process_save
+
+process_value: REFERENCE | DOTTED_NAME | NUMBER | BOOL | STRING | PASCAL_NAME
+
+state_line.10: PASCAL_NAME
+
+transition_line.10: PASCAL_NAME ARROW PASCAL_NAME
+
+step_line.10: PASCAL_NAME ":" REFERENCE
+
+kv_line.5: CNAME ":" kv_value
+
+kv_value: CNAME | NUMBER | STRING | BOOL | ID | SCALAR_TEXT
+
+expect_eq: EXPECT_EQ DOTTED_NAME expect_value
+expect_emitted: EXPECT_EMITTED REFERENCE
+
+?expect_line: expect_eq
+             | expect_emitted
+
+expect_value: DOTTED_NAME | REFERENCE | NUMBER | BOOL | STRING | PASCAL_NAME
+
+expr_line.10: expr
+
+when_intent: WHEN_INTENT REFERENCE
+when_input: CNAME when_value
+
+?when_line: when_intent
+           | when_input
+
+when_value: REFERENCE | DOTTED_NAME | NUMBER | BOOL | STRING | ID | PASCAL_NAME | SCALAR_TEXT
+
+change_line: "AddField" REFERENCE CNAME TYPE_CODE field_modifier*
+
+type_spec.10: TYPE_CODE
+            | REFERENCE
+
+scalar_value: STRING | ID | CNAME | REFERENCE | SCALAR_TEXT
 
 content_line: /[^\n]+/
 

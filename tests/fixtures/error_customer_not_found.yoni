@@ -1,0 +1,9 @@
+error CustomerNotFound
+
+id: ERR_CUST_NOT_FOUND_001
+desc:
+  Customer with given ID does not exist.
+
+code: CUST_404
+http_status: 404
+message: "Customer not found."

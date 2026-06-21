@@ -1,8 +1,4 @@
-"""Base AST types and parse result envelope.
-
-Every Yoni block conforms to a fixed schema (docs/03-final-yoni-specs.md §1).
-ParseResult wraps the AST together with parse-time diagnostics.
-"""
+"""Base AST types and parse result envelope."""
 
 from __future__ import annotations
 
@@ -11,8 +7,23 @@ from typing import Generic, TypeVar
 
 from pydantic import BaseModel, Field
 
+from yoni.ast.action import ActionAST
+from yoni.ast.capability import CapabilityAST
+from yoni.ast.constraint import ConstraintAST
+from yoni.ast.deployment import DeploymentAST
+from yoni.ast.domain import DomainAST
 from yoni.ast.entity import EntityAST
+from yoni.ast.error import ErrorAST
+from yoni.ast.event import EventAST
 from yoni.ast.intent import IntentAST
+from yoni.ast.migration import MigrationAST
+from yoni.ast.project import ProjectAST
+from yoni.ast.query import QueryAST
+from yoni.ast.rule import RuleAST
+from yoni.ast.state import StateAST
+from yoni.ast.test import TestAST
+from yoni.ast.view import ViewAST
+from yoni.ast.workflow import WorkflowAST
 from yoni.errors import ParseError
 
 T = TypeVar("T")
@@ -49,8 +60,25 @@ class BlockKind(str, Enum):
         raise ValueError(msg)
 
 
-# Discriminated union — expand as more block transformers are implemented.
-YoniBlock = EntityAST | IntentAST
+YoniBlock = (
+    ProjectAST
+    | DomainAST
+    | EntityAST
+    | StateAST
+    | EventAST
+    | IntentAST
+    | RuleAST
+    | QueryAST
+    | ActionAST
+    | ConstraintAST
+    | WorkflowAST
+    | ErrorAST
+    | TestAST
+    | CapabilityAST
+    | ViewAST
+    | DeploymentAST
+    | MigrationAST
+)
 
 
 class ParseResult(BaseModel, Generic[T]):

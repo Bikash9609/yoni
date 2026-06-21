@@ -1,0 +1,15 @@
+deployment Production
+
+id: DEP_PROD_001
+desc:
+  Production environment.
+
+region: us-east-1
+replicas: 5
+resources:
+  cpu: 2
+  memory: 4
+services:
+  @Domain.Customer
+env:
+  DATABASE_URL: prod-db

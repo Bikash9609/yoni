@@ -5,7 +5,7 @@ from yoni.errors import (
     missing_required_field,
     section_order_violation,
     syntax_error,
-    unimplemented_block,
+    unknown_block_kind,
 )
 
 __all__ = [
@@ -13,5 +13,5 @@ __all__ = [
     "missing_required_field",
     "section_order_violation",
     "syntax_error",
-    "unimplemented_block",
+    "unknown_block_kind",
 ]

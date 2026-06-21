@@ -1,0 +1,13 @@
+query ActiveCustomers
+
+id: QUERY_ACTIVE_001
+desc:
+  Returns all active customers.
+
+entity: @Entity.Customer
+where:
+  active == true
+order_by:
+  created_at desc
+limit: 100
+return: @Entity.Customer

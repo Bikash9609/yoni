@@ -1,16 +1,13 @@
-"""IntentAST — strongly-typed AST for intent blocks.
-
-Schema: docs/03-final-yoni-specs.md § IntentAST
-Section order: input → validate → process → emit → fail → return
-"""
+"""IntentAST — strongly-typed AST for intent blocks."""
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from yoni.ast.types import FieldDef, RawLine, Reference, SourceSpan
+from yoni.ast.expr import ProcessOp
+from yoni.ast.types import FieldDef, Reference, SourceSpan
 
 
 class IntentAST(BaseModel):
@@ -23,7 +20,7 @@ class IntentAST(BaseModel):
     desc: str = ""
     inputs: list[FieldDef] = Field(default_factory=list)
     validations: list[Reference] = Field(default_factory=list)
-    process: list[RawLine | dict[str, Any]] = Field(default_factory=list)
+    process: list[ProcessOp] = Field(default_factory=list)
     emit: list[Reference] = Field(default_factory=list)
     fail: list[Reference] = Field(default_factory=list)
     return_ref: Reference | None = None

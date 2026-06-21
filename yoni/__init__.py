@@ -1,6 +1,6 @@
-"""Yoni compiler — Grammar + Parsing (step 1).
+"""Yoni compiler — Lexer, Parser, AST (steps 1–3).
 
-Pipeline position: .yoni files → Parser → AST
+Pipeline position: .yoni files → Lexer → Parser → AST
 See docs/03-final-yoni-specs.md for full architecture.
 """
 

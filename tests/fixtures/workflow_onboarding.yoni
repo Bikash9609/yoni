@@ -1,0 +1,9 @@
+workflow CustomerOnboarding
+
+id: WF_ONBOARD_001
+desc:
+  Complete customer onboarding flow.
+
+steps:
+  RegisterUser: @Intent.RegisterUser
+  VerifyEmail: @Intent.VerifyEmail

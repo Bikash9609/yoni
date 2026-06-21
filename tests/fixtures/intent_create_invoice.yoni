@@ -5,13 +5,22 @@ desc:
   Creates invoice for an approved order.
 
 input:
+  order_id: s
+  customer: @Entity.Customer
 
 validate:
+  @Rule.Eligible
 
 process:
+  new invoice @Entity.Invoice
+  set invoice.customer_id customer.customer_id
+  save invoice
 
 emit:
+  @Event.InvoiceCreated
 
 fail:
+  @Error.CustomerNotFound
+  @Error.InsufficientBalance
 
-return:
+return: @Entity.Invoice

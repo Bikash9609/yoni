@@ -1,0 +1,12 @@
+domain Customer
+
+id: DOM_CUSTOMER_001
+desc:
+  Customer lifecycle and profile management.
+
+entities:
+  @Entity.Customer
+rules:
+  @Rule.Adult
+events:
+  @Event.InvoicePaid

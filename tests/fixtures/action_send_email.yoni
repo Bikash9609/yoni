@@ -1,0 +1,12 @@
+action SendEmail
+
+id: ACT_SEND_EMAIL_001
+desc:
+  Sends email via configured email capability.
+
+uses: @Capability.Email
+input:
+  to: s
+  subject: s
+result:
+  success: b

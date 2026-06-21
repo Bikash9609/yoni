@@ -87,3 +87,18 @@ def section_order_violation(
         block_id=block_id,
         suggestion=f"Move '{found}:' below '{expected}:'.",
     )
+
+
+def unknown_block_kind(
+    kind: str,
+    *,
+    file: str = "",
+    block_id: str | None = None,
+) -> ParseError:
+    """YONI1004 — Unknown block kind after parse."""
+    return ParseError(
+        code="YONI1004",
+        message=f"Unknown block kind: {kind}",
+        file=file,
+        block_id=block_id,
+    )

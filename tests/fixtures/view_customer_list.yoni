@@ -1,0 +1,15 @@
+view CustomerList
+
+id: VIEW_CUST_LIST_001
+desc:
+  Displays list of active customers.
+
+query: @Query.ActiveCustomers
+fields:
+  customer_id
+  email
+actions:
+  @Intent.EditCustomer
+layout:
+  type: table
+  columns: 3

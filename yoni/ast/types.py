@@ -68,6 +68,7 @@ class FieldDef(BaseModel):
     ref: Reference | None = None
     nullable: bool = False
     unique: bool = False
+    secret: bool = False
 
     @property
     def type_name(self) -> str:

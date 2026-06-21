@@ -12,6 +12,9 @@ validate:
   @Rule.Eligible
 
 process:
+  new invoice @Entity.Invoice
+  set invoice.customer_id customer.customer_id
+  save invoice
 
 emit:
   @Event.InvoiceCreated
@@ -20,5 +23,4 @@ fail:
   @Error.CustomerNotFound
   @Error.InsufficientBalance
 
-return:
-  @Entity.Invoice
+return: @Entity.Invoice

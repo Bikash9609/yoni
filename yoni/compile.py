@@ -1,4 +1,7 @@
-"""Parse a Yoni project tree and write AST snapshots to .ai/cache/ast/."""
+"""Parse a Yoni project tree and write AST snapshots to .ai/cache/ast/.
+
+Parses all 17 block kinds into strongly-typed AST JSON.
+"""
 
 from __future__ import annotations
 

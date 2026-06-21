@@ -1,8 +1,4 @@
-"""Lark parser engine for Yoni source files.
-
-Loads yoni.lark, attaches YoniIndenter, and runs the parse → transform pipeline.
-This module is the entry point for the deterministic compiler (step 1 of pipeline).
-"""
+"""Lark parser engine for Yoni source files."""
 
 from __future__ import annotations
 
@@ -25,15 +21,15 @@ GRAMMAR_FILE = "yoni.lark"
 @lru_cache(maxsize=1)
 def build_parser() -> Lark:
     """Load yoni.lark and return a reusable Lark parser with indentation support."""
-    grammar_text = (
-        resources.files(GRAMMAR_PACKAGE).joinpath(GRAMMAR_FILE).read_text(encoding="utf-8")
-    )
+    grammar_dir = resources.files(GRAMMAR_PACKAGE)
+    grammar_text = grammar_dir.joinpath(GRAMMAR_FILE).read_text(encoding="utf-8")
     return Lark(
         grammar_text,
         start="start",
         parser="lalr",
         postlex=YoniIndenter(),
-        propagate_positions=False,
+        propagate_positions=True,
+        import_paths=[str(grammar_dir)],
     )
 
 

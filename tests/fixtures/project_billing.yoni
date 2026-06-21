@@ -1,0 +1,13 @@
+project BillingSystem
+
+id: PROJ_BILLING_001
+desc:
+  Enterprise billing platform.
+
+domains:
+  @Domain.Customer
+capabilities:
+  @Capability.Email
+env:
+  name: production
+  region: "us-east-1"
