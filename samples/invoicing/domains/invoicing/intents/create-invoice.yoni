@@ -1,0 +1,24 @@
+intent CreateInvoice
+
+id: INT_CREATE_INV_001
+desc:
+  Creates invoice for an approved order.
+
+input:
+  order_id: s
+  customer: @Entity.Customer
+
+validate:
+  @Rule.Eligible
+
+process:
+
+emit:
+  @Event.InvoiceCreated
+
+fail:
+  @Error.CustomerNotFound
+  @Error.InsufficientBalance
+
+return:
+  @Entity.Invoice

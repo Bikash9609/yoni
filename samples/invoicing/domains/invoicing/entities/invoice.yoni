@@ -1,0 +1,11 @@
+entity Invoice
+
+id: ENT_INVOICE_001
+desc:
+  Invoice record for billing.
+
+fields:
+  invoice_id: s
+  customer_id: s
+  status: s
+  amount: f

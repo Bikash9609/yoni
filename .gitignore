@@ -11,3 +11,4 @@ wheels/
 .env
 docs/*
 chroma_db/*
+**/.ai/cache/
