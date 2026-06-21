@@ -1,0 +1,31 @@
+intent AddLineItem
+
+id: INT_ADD_LINE_ITEM_001
+desc:
+  Adds a line item to an invoice.
+
+input:
+  invoice: @Entity.Invoice
+  product_id: s
+  quantity: i
+  unit_price: f
+
+validate:
+  @Rule.InvoiceAmountPositive
+
+process:
+  new line_item @Entity.InvoiceLineItem
+  set line_item.invoice_id invoice.invoice_id
+  set line_item.product_id product_id
+  set line_item.quantity quantity
+  set line_item.unit_price unit_price
+  save line_item
+
+emit:
+
+fail:
+  @Error.InvoiceNotFound
+  @Error.ProductNotFound
+
+return: @Entity.InvoiceLineItem
+

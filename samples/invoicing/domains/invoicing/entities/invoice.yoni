@@ -7,5 +7,14 @@ desc:
 fields:
   invoice_id: s
   customer_id: s
+  order_id: s
   status: s
   amount: f
+  tax_amount: f
+  total: f
+  due_date: t
+  created_at: t
+
+indices:
+  invoice_id: unique
+

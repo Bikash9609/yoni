@@ -1,0 +1,10 @@
+event InvoiceApproved
+
+id: EVT_INV_APPROVED_001
+desc:
+  Invoice was approved for sending.
+
+payload:
+  invoice_id: s
+  amount: f
+

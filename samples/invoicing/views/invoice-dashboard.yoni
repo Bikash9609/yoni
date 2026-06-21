@@ -1,0 +1,21 @@
+view InvoiceDashboard
+
+id: VIEW_INV_DASHBOARD_001
+desc:
+  Dashboard showing pending and overdue invoices.
+
+query: @Query.PendingInvoices
+fields:
+  invoice_id
+  customer_id
+  amount
+  status
+  due_date
+actions:
+  @Intent.ApproveInvoice
+  @Intent.SendInvoice
+  @Intent.CancelInvoice
+layout:
+  type: table
+  columns: 5
+

@@ -1,0 +1,10 @@
+event InvoiceCancelled
+
+id: EVT_INV_CANCELLED_001
+desc:
+  Invoice was cancelled.
+
+payload:
+  invoice_id: s
+  reason: s
+

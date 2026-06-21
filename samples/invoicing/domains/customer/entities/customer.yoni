@@ -8,5 +8,11 @@ fields:
   customer_id: s
   email: s
   age: i
-  active: b 
+  active: b
+  spend: f
+  created_at: t
+  phone: s
+
+indices:
+  email: unique
 

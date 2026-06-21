@@ -1,0 +1,16 @@
+state CustomerStatus
+
+id: STS_CUSTOMER_001
+desc:
+  Customer account lifecycle states.
+
+states:
+  Active
+  Suspended
+  Archived
+transitions:
+  Active -> Suspended
+  Suspended -> Active
+  Active -> Archived
+  Suspended -> Archived
+

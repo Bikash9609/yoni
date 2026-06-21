@@ -1,0 +1,26 @@
+intent SendInvoice
+
+id: INT_SEND_INV_001
+desc:
+  Sends invoice to customer via email.
+
+input:
+  invoice: @Entity.Invoice
+  customer: @Entity.Customer
+
+validate:
+  @Rule.ActiveCustomer
+
+process:
+  @Action.GeneratePDF
+  @Action.SendEmail
+
+emit:
+  @Event.InvoiceSent
+
+fail:
+  @Error.InvoiceNotFound
+  @Error.CustomerNotFound
+
+return: @Entity.Invoice
+

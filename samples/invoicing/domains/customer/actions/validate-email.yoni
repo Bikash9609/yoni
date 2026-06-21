@@ -1,0 +1,12 @@
+action ValidateEmail
+
+id: ACT_VALIDATE_EMAIL_001
+desc:
+  Validates email format via external service.
+
+uses: @Capability.Email
+input:
+  email: s
+result:
+  valid: b
+

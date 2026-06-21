@@ -1,0 +1,15 @@
+entity InvoiceLineItem
+
+id: ENT_LINE_ITEM_001
+desc:
+  Individual line item on an invoice.
+
+fields:
+  line_item_id: s
+  invoice_id: s
+  product_id: s
+  description: s
+  quantity: i
+  unit_price: f
+  line_total: f
+

@@ -1,0 +1,10 @@
+error EmailAlreadyExists
+
+id: ERR_EMAIL_EXISTS_001
+desc:
+  Email address is already registered.
+
+code: CUST_409
+http_status: 409
+message: "Email already exists."
+

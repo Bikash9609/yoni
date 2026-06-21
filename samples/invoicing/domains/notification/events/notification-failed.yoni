@@ -1,0 +1,11 @@
+event NotificationFailed
+
+id: EVT_NOTIF_FAILED_001
+desc:
+  Notification delivery failed.
+
+payload:
+  log_id: s
+  customer_id: s
+  reason: s
+

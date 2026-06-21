@@ -1,0 +1,25 @@
+intent SuspendCustomer
+
+id: INT_SUSPEND_CUST_001
+desc:
+  Suspends an active customer account.
+
+input:
+  customer: @Entity.Customer
+  reason: s
+
+validate:
+  @Rule.ActiveCustomer
+
+process:
+  set customer.active false
+  save customer
+
+emit:
+  @Event.CustomerSuspended
+
+fail:
+  @Error.CustomerNotFound
+
+return: @Entity.Customer
+

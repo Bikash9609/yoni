@@ -1,0 +1,15 @@
+query ProductsByCategory
+
+id: QUERY_PROD_CAT_001
+desc:
+  Returns products in a specific category.
+
+entity: @Entity.Product
+where:
+  category == category
+  active == true
+order_by:
+  base_price asc
+limit: 100
+return: list[@Entity.Product]
+

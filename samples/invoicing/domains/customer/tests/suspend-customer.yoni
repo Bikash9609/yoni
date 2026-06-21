@@ -1,0 +1,18 @@
+test SuspendCustomer
+
+id: TST_SUSPEND_CUST_001
+desc:
+  Active customer is suspended.
+
+given:
+  new customer @Entity.Customer
+  set customer.email "active@example.com"
+  set customer.active true
+when:
+  intent @Intent.SuspendCustomer
+  customer customer
+  reason "policy violation"
+expect:
+  eq return.active false
+  emitted @Event.CustomerSuspended
+

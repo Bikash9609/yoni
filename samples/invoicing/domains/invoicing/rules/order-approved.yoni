@@ -1,0 +1,9 @@
+rule OrderApproved
+
+id: RULE_ORDER_APPROVED_001
+desc:
+  Order must be approved before invoicing.
+
+expression:
+  order.approved == true
+

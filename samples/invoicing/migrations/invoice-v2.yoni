@@ -1,0 +1,17 @@
+migration InvoiceV2
+
+id: MIG_INV_V2_001
+desc:
+  Adds tax and total fields to Invoice entity.
+
+from_version: 1
+to_version: 2
+breaking: false
+changes:
+  AddField @Entity.Invoice tax_amount f
+  AddField @Entity.Invoice total f
+affects:
+  @Intent.CreateInvoice
+  @Intent.CalculateTax
+  @Query.PendingInvoices
+

@@ -1,0 +1,23 @@
+intent SendPaymentReceipt
+
+id: INT_SEND_RECEIPT_001
+desc:
+  Sends payment receipt email to customer.
+
+input:
+  payment: @Entity.Payment
+  customer: @Entity.Customer
+
+validate:
+
+process:
+  @Action.SendEmail
+
+emit:
+  @Event.NotificationSent
+
+fail:
+  @Error.CustomerNotFound
+
+return: @Entity.NotificationLog
+

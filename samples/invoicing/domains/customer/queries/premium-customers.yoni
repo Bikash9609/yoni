@@ -1,0 +1,14 @@
+query PremiumCustomers
+
+id: QUERY_PREMIUM_001
+desc:
+  Returns customers exceeding premium spend threshold.
+
+entity: @Entity.Customer
+where:
+  spend > 10000
+order_by:
+  spend desc
+limit: 50
+return: list[@Entity.Customer]
+

@@ -1,0 +1,18 @@
+test CancelInvoice
+
+id: TST_CANCEL_INV_001
+desc:
+  Pending invoice is cancelled.
+
+given:
+  new invoice @Entity.Invoice
+  set invoice.status "STS_INVOICE_001.Pending"
+  set invoice.invoice_id INV_001
+when:
+  intent @Intent.CancelInvoice
+  invoice invoice
+  reason "customer request"
+expect:
+  eq return.status "STS_INVOICE_001.Cancelled"
+  emitted @Event.InvoiceCancelled
+

@@ -1,0 +1,11 @@
+event ProductCreated
+
+id: EVT_PROD_CREATED_001
+desc:
+  New product was added to catalog.
+
+payload:
+  product_id: s
+  name: s
+  base_price: f
+

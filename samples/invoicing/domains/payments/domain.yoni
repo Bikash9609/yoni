@@ -1,0 +1,18 @@
+domain Payments
+
+id: DOM_PAYMENTS_001
+desc:
+  Payment processing and refunds.
+
+entities:
+  @Entity.Payment
+  @Entity.PaymentMethod
+  @Entity.Refund
+rules:
+  @Rule.SufficientBalance
+  @Rule.PaymentAmountValid
+events:
+  @Event.PaymentProcessed
+  @Event.PaymentFailed
+  @Event.InvoicePaid
+

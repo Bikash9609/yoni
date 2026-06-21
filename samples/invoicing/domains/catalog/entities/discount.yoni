@@ -1,0 +1,15 @@
+entity Discount
+
+id: ENT_DISCOUNT_001
+desc:
+  Discount code or promotional offer.
+
+fields:
+  discount_id: s
+  code: s
+  percentage: f
+  max_uses: i
+  used_count: i
+  active: b
+  expires_at: t
+

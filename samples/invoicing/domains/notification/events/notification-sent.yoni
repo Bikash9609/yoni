@@ -1,0 +1,11 @@
+event NotificationSent
+
+id: EVT_NOTIF_SENT_001
+desc:
+  Notification was successfully sent.
+
+payload:
+  log_id: s
+  customer_id: s
+  channel: s
+

@@ -1,0 +1,25 @@
+intent CancelInvoice
+
+id: INT_CANCEL_INV_001
+desc:
+  Cancels a pending or overdue invoice.
+
+input:
+  invoice: @Entity.Invoice
+  reason: s
+
+validate:
+
+process:
+  set invoice.status "STS_INVOICE_001.Cancelled"
+  save invoice
+
+emit:
+  @Event.InvoiceCancelled
+
+fail:
+  @Error.InvoiceNotFound
+  @Error.InvalidStateTransition
+
+return: @Entity.Invoice
+

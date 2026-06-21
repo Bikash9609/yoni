@@ -1,0 +1,23 @@
+intent ActivateCustomer
+
+id: INT_ACTIVATE_CUST_001
+desc:
+  Reactivates a suspended customer account.
+
+input:
+  customer: @Entity.Customer
+
+validate:
+
+process:
+  set customer.active true
+  save customer
+
+emit:
+  @Event.CustomerUpdated
+
+fail:
+  @Error.CustomerNotFound
+
+return: @Entity.Customer
+

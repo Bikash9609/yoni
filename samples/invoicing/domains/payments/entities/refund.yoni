@@ -1,0 +1,14 @@
+entity Refund
+
+id: ENT_REFUND_001
+desc:
+  Refund record for a processed payment.
+
+fields:
+  refund_id: s
+  payment_id: s
+  amount: f
+  reason: s
+  status: s
+  created_at: t
+

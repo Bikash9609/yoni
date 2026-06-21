@@ -1,0 +1,14 @@
+entity NotificationLog
+
+id: ENT_NOTIF_LOG_001
+desc:
+  Log entry for sent notifications.
+
+fields:
+  log_id: s
+  customer_id: s
+  template_id: s
+  channel: s
+  status: s
+  sent_at: t
+

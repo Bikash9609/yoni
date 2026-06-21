@@ -1,0 +1,10 @@
+constraint EmailUnique
+
+id: CNST_EMAIL_UNIQUE_001
+desc:
+  Email must be unique across all customers.
+
+entity: @Entity.Customer
+check:
+  count(email) == 1
+

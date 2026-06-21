@@ -1,0 +1,28 @@
+intent AddPaymentMethod
+
+id: INT_ADD_PAY_METHOD_001
+desc:
+  Adds a payment method to customer account.
+
+input:
+  customer: @Entity.Customer
+  type: s
+  last_four: s
+
+validate:
+
+process:
+  new method @Entity.PaymentMethod
+  set method.customer_id customer.customer_id
+  set method.type type
+  set method.last_four last_four
+  set method.active true
+  save method
+
+emit:
+
+fail:
+  @Error.CustomerNotFound
+
+return: @Entity.PaymentMethod
+

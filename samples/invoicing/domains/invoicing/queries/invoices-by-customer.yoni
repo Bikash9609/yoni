@@ -1,0 +1,14 @@
+query InvoicesByCustomer
+
+id: QUERY_INV_BY_CUST_001
+desc:
+  Returns all invoices for a customer.
+
+entity: @Entity.Invoice
+where:
+  customer_id == customer_id
+order_by:
+  created_at desc
+limit: 50
+return: list[@Entity.Invoice]
+

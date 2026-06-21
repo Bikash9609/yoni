@@ -1,0 +1,25 @@
+intent ApplyDiscount
+
+id: INT_APPLY_DISCOUNT_001
+desc:
+  Applies a discount code to an order.
+
+input:
+  discount: @Entity.Discount
+  order: @Entity.Order
+
+validate:
+  @Rule.DiscountValid
+
+process:
+  set discount.used_count 1
+  save discount
+
+emit:
+  @Event.PriceUpdated
+
+fail:
+  @Error.ProductNotFound
+
+return: @Entity.Discount
+

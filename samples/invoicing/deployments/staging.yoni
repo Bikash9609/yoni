@@ -1,0 +1,19 @@
+deployment Staging
+
+id: DEP_STAGING_001
+desc:
+  Staging environment for pre-production testing.
+
+region: us-west-2
+replicas: 2
+resources:
+  cpu: 2
+  memory: 4
+services:
+  @Domain.Customer
+  @Domain.Invoicing
+  @Domain.Payments
+env:
+  DATABASE_URL: staging-db
+  REDIS_URL: staging-redis
+

@@ -1,0 +1,21 @@
+domain Invoicing
+
+id: DOM_INVOICING_001
+desc:
+  Invoice creation, approval, and lifecycle management.
+
+entities:
+  @Entity.Invoice
+  @Entity.InvoiceLineItem
+  @Entity.Order
+  @Entity.TaxRate
+rules:
+  @Rule.Eligible
+  @Rule.InvoiceAmountPositive
+  @Rule.OrderApproved
+events:
+  @Event.InvoiceCreated
+  @Event.InvoiceApproved
+  @Event.InvoiceCancelled
+  @Event.InvoiceSent
+

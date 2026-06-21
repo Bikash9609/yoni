@@ -1,0 +1,15 @@
+capability Email
+
+id: CAP_EMAIL_001
+desc:
+  Email sending via configured provider.
+
+actions:
+  @Action.SendEmail
+  @Action.SendSMS
+  @Action.SendReminder
+config:
+  provider: s
+  api_key: s
+  from_address: s
+

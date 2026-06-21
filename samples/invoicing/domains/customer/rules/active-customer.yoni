@@ -1,0 +1,9 @@
+rule ActiveCustomer
+
+id: RULE_ACTIVE_CUST_001
+desc:
+  Customer account is active.
+
+expression:
+  active == true
+

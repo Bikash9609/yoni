@@ -1,0 +1,22 @@
+deployment Production
+
+id: DEP_PROD_001
+desc:
+  Production environment deployment.
+
+region: us-east-1
+replicas: 5
+resources:
+  cpu: 4
+  memory: 8
+services:
+  @Domain.Customer
+  @Domain.Invoicing
+  @Domain.Payments
+  @Domain.Catalog
+  @Domain.Notification
+env:
+  DATABASE_URL: prod-db
+  REDIS_URL: prod-redis
+  PAYMENT_GATEWAY_KEY: secret
+

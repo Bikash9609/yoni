@@ -1,0 +1,16 @@
+entity Address
+
+id: ENT_ADDRESS_001
+desc:
+  Customer billing and shipping address.
+
+fields:
+  address_id: s
+  customer_id: s
+  street: s
+  city: s
+  state: s
+  postal_code: s
+  country: s
+  is_default: b
+

@@ -1,0 +1,26 @@
+intent UpdatePrice
+
+id: INT_UPDATE_PRICE_001
+desc:
+  Updates base price for a product.
+
+input:
+  product: @Entity.Product
+  base_price: f
+
+validate:
+  @Rule.ProductActive
+  @Rule.InvoiceAmountPositive
+
+process:
+  set product.base_price base_price
+  save product
+
+emit:
+  @Event.PriceUpdated
+
+fail:
+  @Error.ProductNotFound
+
+return: @Entity.Product
+

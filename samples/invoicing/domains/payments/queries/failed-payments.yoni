@@ -1,0 +1,14 @@
+query FailedPayments
+
+id: QUERY_FAILED_PAY_001
+desc:
+  Returns all failed payment attempts.
+
+entity: @Entity.Payment
+where:
+  status == "STS_PAYMENT_001.Failed"
+order_by:
+  processed_at desc
+limit: 100
+return: list[@Entity.Payment]
+

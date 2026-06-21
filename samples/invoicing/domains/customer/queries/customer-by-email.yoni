@@ -1,0 +1,12 @@
+query CustomerByEmail
+
+id: QUERY_CUST_EMAIL_001
+desc:
+  Find customer by email address.
+
+entity: @Entity.Customer
+where:
+  email == email
+limit: 1
+return: @Entity.Customer
+

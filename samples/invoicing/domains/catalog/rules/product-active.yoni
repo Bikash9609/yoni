@@ -1,0 +1,9 @@
+rule ProductActive
+
+id: RULE_PRODUCT_ACTIVE_001
+desc:
+  Product must be active for sale.
+
+expression:
+  active == true
+

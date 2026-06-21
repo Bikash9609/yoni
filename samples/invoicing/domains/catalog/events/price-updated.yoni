@@ -1,0 +1,10 @@
+event PriceUpdated
+
+id: EVT_PRICE_UPDATED_001
+desc:
+  Product price was updated.
+
+payload:
+  product_id: s
+  base_price: f
+

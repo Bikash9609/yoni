@@ -1,0 +1,13 @@
+domain Notification
+
+id: DOM_NOTIFICATION_001
+desc:
+  Customer notifications and reminders.
+
+entities:
+  @Entity.NotificationTemplate
+  @Entity.NotificationLog
+events:
+  @Event.NotificationSent
+  @Event.NotificationFailed
+

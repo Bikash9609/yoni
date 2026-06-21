@@ -1,0 +1,14 @@
+entity Product
+
+id: ENT_PRODUCT_001
+desc:
+  Product or service in the catalog.
+
+fields:
+  product_id: s
+  name: s
+  description: s
+  category: s
+  base_price: f
+  active: b
+

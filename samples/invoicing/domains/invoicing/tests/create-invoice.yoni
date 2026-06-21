@@ -1,0 +1,23 @@
+test CreateInvoice
+
+id: TST_CREATE_INV_001
+desc:
+  Invoice is created for eligible customer.
+
+given:
+  new customer @Entity.Customer
+  set customer.email "test@example.com"
+  set customer.active true
+  new order @Entity.Order
+  set order.approved true
+  set order.total 500.00
+when:
+  intent @Intent.CreateInvoice
+  order_id ORD_001
+  customer customer
+  order order
+expect:
+  eq return.customer_id customer.customer_id
+  eq return.status "STS_INVOICE_001.Draft"
+  emitted @Event.InvoiceCreated
+

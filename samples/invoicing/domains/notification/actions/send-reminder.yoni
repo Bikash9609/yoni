@@ -1,0 +1,13 @@
+action SendReminder
+
+id: ACT_SEND_REMINDER_001
+desc:
+  Sends payment reminder notification.
+
+uses: @Capability.Email
+input:
+  customer_id: s
+  invoice_id: s
+result:
+  success: b
+

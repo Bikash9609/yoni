@@ -1,0 +1,14 @@
+query PaymentsByInvoice
+
+id: QUERY_PAY_BY_INV_001
+desc:
+  Returns payments for a given invoice.
+
+entity: @Entity.Payment
+where:
+  invoice_id == invoice_id
+order_by:
+  processed_at desc
+limit: 10
+return: list[@Entity.Payment]
+

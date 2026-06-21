@@ -1,0 +1,31 @@
+intent RefundPayment
+
+id: INT_REFUND_PAY_001
+desc:
+  Refunds a completed payment.
+
+input:
+  payment: @Entity.Payment
+  reason: s
+  amount: f
+
+validate:
+  @Rule.PaymentAmountValid
+
+process:
+  new refund @Entity.Refund
+  set refund.payment_id payment.payment_id
+  set refund.amount amount
+  set refund.reason reason
+  save refund
+  set payment.status "STS_PAYMENT_001.Refunded"
+  save payment
+
+emit:
+  @Event.PaymentProcessed
+
+fail:
+  @Error.PaymentDeclined
+
+return: @Entity.Refund
+

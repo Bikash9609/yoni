@@ -1,0 +1,25 @@
+test ProcessPayment
+
+id: TST_PROCESS_PAY_001
+desc:
+  Payment is processed for pending invoice.
+
+given:
+  new customer @Entity.Customer
+  set customer.spend 1000.00
+  new invoice @Entity.Invoice
+  set invoice.invoice_id INV_100
+  set invoice.status "STS_INVOICE_001.Pending"
+  new method @Entity.PaymentMethod
+  set method.method_id PM_001
+when:
+  intent @Intent.ProcessPayment
+  invoice invoice
+  customer customer
+  method method
+  amount 250.00
+expect:
+  eq return.status "STS_PAYMENT_001.Completed"
+  emitted @Event.PaymentProcessed
+  emitted @Event.InvoicePaid
+

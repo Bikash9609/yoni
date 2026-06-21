@@ -1,0 +1,10 @@
+event CustomerRegistered
+
+id: EVT_CUST_REGISTERED_001
+desc:
+  New customer account was created.
+
+payload:
+  customer_id: s
+  email: s
+

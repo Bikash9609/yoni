@@ -1,0 +1,11 @@
+event PaymentFailed
+
+id: EVT_PAY_FAILED_001
+desc:
+  Payment processing failed.
+
+payload:
+  payment_id: s
+  invoice_id: s
+  reason: s
+

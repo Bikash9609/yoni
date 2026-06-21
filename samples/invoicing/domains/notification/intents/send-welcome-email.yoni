@@ -1,0 +1,29 @@
+intent SendWelcomeEmail
+
+id: INT_SEND_WELCOME_001
+desc:
+  Sends welcome email to newly registered customer.
+
+input:
+  customer: @Entity.Customer
+  template: @Entity.NotificationTemplate
+
+validate:
+  @Rule.ActiveCustomer
+
+process:
+  @Action.SendEmail
+  new log @Entity.NotificationLog
+  set log.customer_id customer.customer_id
+  set log.channel "email"
+  set log.status "sent"
+  save log
+
+emit:
+  @Event.NotificationSent
+
+fail:
+  @Error.CustomerNotFound
+
+return: @Entity.NotificationLog
+

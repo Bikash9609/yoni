@@ -1,0 +1,14 @@
+entity PaymentMethod
+
+id: ENT_PAY_METHOD_001
+desc:
+  Stored payment method for a customer.
+
+fields:
+  method_id: s
+  customer_id: s
+  type: s
+  last_four: s
+  is_default: b
+  active: b
+

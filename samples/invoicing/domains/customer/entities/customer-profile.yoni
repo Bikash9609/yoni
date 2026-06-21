@@ -1,0 +1,14 @@
+entity CustomerProfile
+
+id: ENT_CUST_PROFILE_001
+desc:
+  Extended customer profile data.
+
+fields:
+  profile_id: s
+  customer_id: s
+  first_name: s
+  last_name: s
+  company: s
+  verified: b
+

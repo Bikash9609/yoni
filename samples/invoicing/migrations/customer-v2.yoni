@@ -1,0 +1,15 @@
+migration CustomerV2
+
+id: MIG_CUST_V2_001
+desc:
+  Adds phone field to Customer entity.
+
+from_version: 1
+to_version: 2
+breaking: false
+changes:
+  AddField @Entity.Customer phone s nullable
+affects:
+  @Intent.RegisterUser
+  @Intent.EditCustomer
+

@@ -1,0 +1,10 @@
+error InvalidEmail
+
+id: ERR_INVALID_EMAIL_001
+desc:
+  Email address format is invalid.
+
+code: CUST_400
+http_status: 400
+message: "Invalid email address."
+

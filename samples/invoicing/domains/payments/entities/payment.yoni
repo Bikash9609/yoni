@@ -1,0 +1,15 @@
+entity Payment
+
+id: ENT_PAYMENT_001
+desc:
+  Payment transaction record.
+
+fields:
+  payment_id: s
+  invoice_id: s
+  customer_id: s
+  amount: f
+  status: s
+  method: s
+  processed_at: t
+

@@ -1,0 +1,10 @@
+error InvoiceNotFound
+
+id: ERR_INV_NOT_FOUND_001
+desc:
+  Invoice with given ID does not exist.
+
+code: INV_404
+http_status: 404
+message: "Invoice not found."
+

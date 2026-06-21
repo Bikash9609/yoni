@@ -1,0 +1,9 @@
+rule Eligible
+
+id: RULE_ELIGIBLE_001
+desc:
+  Customer is eligible for invoicing.
+
+expression:
+  customer.active == true
+

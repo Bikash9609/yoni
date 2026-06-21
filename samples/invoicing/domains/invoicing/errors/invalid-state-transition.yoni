@@ -1,0 +1,10 @@
+error InvalidStateTransition
+
+id: ERR_INVALID_STATE_001
+desc:
+  State transition is not allowed.
+
+code: INV_422
+http_status: 422
+message: "Invalid state transition."
+

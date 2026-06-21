@@ -1,0 +1,9 @@
+rule InvoiceAmountPositive
+
+id: RULE_INV_AMOUNT_001
+desc:
+  Invoice amount must be positive.
+
+expression:
+  amount > 0
+

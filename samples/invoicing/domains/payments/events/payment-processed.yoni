@@ -1,0 +1,11 @@
+event PaymentProcessed
+
+id: EVT_PAY_PROCESSED_001
+desc:
+  Payment was successfully processed.
+
+payload:
+  payment_id: s
+  invoice_id: s
+  amount: f
+

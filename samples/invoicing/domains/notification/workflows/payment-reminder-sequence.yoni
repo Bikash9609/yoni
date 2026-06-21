@@ -1,0 +1,11 @@
+workflow PaymentReminderSequence
+
+id: WF_PAY_REMINDER_001
+desc:
+  Automated payment reminder sequence for overdue invoices.
+
+steps:
+  FindOverdue: @Query.OverdueInvoices
+  SendReminder: @Intent.SendInvoiceReminder
+  SendReceipt: @Intent.SendPaymentReceipt
+

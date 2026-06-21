@@ -1,0 +1,12 @@
+action GeneratePDF
+
+id: ACT_GENERATE_PDF_001
+desc:
+  Generates PDF document for an invoice.
+
+uses: @Capability.PDF
+input:
+  invoice_id: s
+result:
+  pdf_url: s
+

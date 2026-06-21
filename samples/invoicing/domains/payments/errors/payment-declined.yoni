@@ -1,0 +1,10 @@
+error PaymentDeclined
+
+id: ERR_PAY_DECLINED_001
+desc:
+  Payment was declined by the gateway.
+
+code: PAY_402
+http_status: 402
+message: "Payment declined."
+

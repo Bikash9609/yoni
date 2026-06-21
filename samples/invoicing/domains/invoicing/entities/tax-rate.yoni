@@ -1,0 +1,12 @@
+entity TaxRate
+
+id: ENT_TAX_RATE_001
+desc:
+  Tax rate configuration by region.
+
+fields:
+  tax_rate_id: s
+  region: s
+  rate: f
+  active: b
+

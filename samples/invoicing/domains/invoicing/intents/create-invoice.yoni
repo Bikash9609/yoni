@@ -4,16 +4,26 @@ id: INT_CREATE_INV_001
 desc:
   Creates invoice for an approved order.
 
+sla: 500ms
+criticality: high
+owner: billing-team
+
 input:
   order_id: s
   customer: @Entity.Customer
+  order: @Entity.Order
 
 validate:
   @Rule.Eligible
+  @Rule.OrderApproved
+  @Rule.InvoiceAmountPositive
 
 process:
   new invoice @Entity.Invoice
   set invoice.customer_id customer.customer_id
+  set invoice.order_id order_id
+  set invoice.status "STS_INVOICE_001.Draft"
+  set invoice.amount order.total
   save invoice
 
 emit:
@@ -22,5 +32,7 @@ emit:
 fail:
   @Error.CustomerNotFound
   @Error.InsufficientBalance
+  @Error.InvalidStateTransition
 
 return: @Entity.Invoice
+

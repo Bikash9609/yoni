@@ -1,0 +1,18 @@
+view PaymentHistory
+
+id: VIEW_PAY_HISTORY_001
+desc:
+  Payment history for an invoice.
+
+query: @Query.PaymentsByInvoice
+fields:
+  payment_id
+  amount
+  status
+  processed_at
+actions:
+  @Intent.RefundPayment
+layout:
+  type: table
+  columns: 4
+

@@ -1,0 +1,11 @@
+event InvoicePaid
+
+id: EVT_INVOICE_PAID_002
+desc:
+  Invoice payment was recorded.
+
+payload:
+  invoice_id: s
+  amount: f
+  payment_id: s
+

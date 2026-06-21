@@ -1,0 +1,14 @@
+query ActiveProducts
+
+id: QUERY_ACTIVE_PROD_001
+desc:
+  Returns all active products.
+
+entity: @Entity.Product
+where:
+  active == true
+order_by:
+  name asc
+limit: 500
+return: list[@Entity.Product]
+

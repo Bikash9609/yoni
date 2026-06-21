@@ -1,0 +1,10 @@
+event InvoiceSent
+
+id: EVT_INV_SENT_001
+desc:
+  Invoice was sent to customer.
+
+payload:
+  invoice_id: s
+  customer_id: s
+

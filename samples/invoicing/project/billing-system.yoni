@@ -1,0 +1,20 @@
+project BillingSystem
+
+id: PROJ_BILLING_001
+desc:
+  Enterprise billing and invoicing platform.
+
+domains:
+  @Domain.Customer
+  @Domain.Invoicing
+  @Domain.Payments
+  @Domain.Catalog
+  @Domain.Notification
+capabilities:
+  @Capability.Email
+  @Capability.PaymentGateway
+  @Capability.PDF
+env:
+  name: production
+  region: us-east-1
+

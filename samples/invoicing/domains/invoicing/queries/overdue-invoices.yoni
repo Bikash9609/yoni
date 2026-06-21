@@ -1,0 +1,14 @@
+query OverdueInvoices
+
+id: QUERY_OVERDUE_INV_001
+desc:
+  Returns overdue invoices past due date.
+
+entity: @Entity.Invoice
+where:
+  status == "STS_INVOICE_001.Overdue"
+order_by:
+  due_date asc
+limit: 100
+return: list[@Entity.Invoice]
+

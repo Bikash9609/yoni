@@ -1,0 +1,14 @@
+entity Order
+
+id: ENT_ORDER_001
+desc:
+  Sales order linked to an invoice.
+
+fields:
+  order_id: s
+  customer_id: s
+  status: s
+  total: f
+  approved: b
+  created_at: t
+

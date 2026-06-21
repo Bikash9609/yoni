@@ -1,0 +1,28 @@
+intent VerifyEmail
+
+id: INT_VERIFY_EMAIL_001
+desc:
+  Verifies customer email address.
+
+input:
+  customer: @Entity.Customer
+  token: s
+
+validate:
+  @Rule.ActiveCustomer
+
+process:
+  new profile @Entity.CustomerProfile
+  set profile.customer_id customer.customer_id
+  set profile.verified true
+  save profile
+
+emit:
+  @Event.CustomerUpdated
+
+fail:
+  @Error.CustomerNotFound
+  @Error.InvalidEmail
+
+return: @Entity.CustomerProfile
+

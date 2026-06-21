@@ -1,0 +1,41 @@
+intent ProcessPayment
+
+id: INT_PROCESS_PAY_001
+desc:
+  Processes payment for an invoice.
+
+sla: 2s
+criticality: critical
+owner: payments-team
+
+input:
+  invoice: @Entity.Invoice
+  customer: @Entity.Customer
+  method: @Entity.PaymentMethod
+  amount: f
+
+validate:
+  @Rule.PaymentAmountValid
+  @Rule.SufficientBalance
+
+process:
+  new payment @Entity.Payment
+  set payment.invoice_id invoice.invoice_id
+  set payment.customer_id customer.customer_id
+  set payment.amount amount
+  set payment.status "STS_PAYMENT_001.Completed"
+  save payment
+  set invoice.status "STS_INVOICE_001.Paid"
+  save invoice
+
+emit:
+  @Event.PaymentProcessed
+  @Event.InvoicePaid
+
+fail:
+  @Error.PaymentDeclined
+  @Error.InsufficientBalance
+  @Error.InvoiceNotFound
+
+return: @Entity.Payment
+

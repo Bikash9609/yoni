@@ -1,0 +1,13 @@
+entity PriceTier
+
+id: ENT_PRICE_TIER_001
+desc:
+  Volume-based pricing tier for a product.
+
+fields:
+  tier_id: s
+  product_id: s
+  min_quantity: i
+  price: f
+  active: b
+

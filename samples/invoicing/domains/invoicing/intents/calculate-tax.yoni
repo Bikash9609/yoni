@@ -1,0 +1,25 @@
+intent CalculateTax
+
+id: INT_CALC_TAX_001
+desc:
+  Calculates tax for an invoice based on region.
+
+input:
+  invoice: @Entity.Invoice
+  tax_rate: @Entity.TaxRate
+
+validate:
+  @Rule.InvoiceAmountPositive
+
+process:
+  set invoice.tax_amount tax_rate.rate
+  set invoice.total invoice.amount
+  save invoice
+
+emit:
+
+fail:
+  @Error.InvoiceNotFound
+
+return: @Entity.Invoice
+

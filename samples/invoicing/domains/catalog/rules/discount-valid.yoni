@@ -1,0 +1,9 @@
+rule DiscountValid
+
+id: RULE_DISCOUNT_VALID_001
+desc:
+  Discount is active and not expired.
+
+expression:
+  active == true
+

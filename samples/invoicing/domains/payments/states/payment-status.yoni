@@ -1,0 +1,16 @@
+state PaymentStatus
+
+id: STS_PAYMENT_001
+desc:
+  Payment transaction lifecycle states.
+
+states:
+  Pending
+  Completed
+  Failed
+  Refunded
+transitions:
+  Pending -> Completed
+  Pending -> Failed
+  Completed -> Refunded
+

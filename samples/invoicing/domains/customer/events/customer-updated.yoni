@@ -1,0 +1,10 @@
+event CustomerUpdated
+
+id: EVT_CUST_UPDATED_001
+desc:
+  Customer record was updated.
+
+payload:
+  customer_id: s
+  email: s
+

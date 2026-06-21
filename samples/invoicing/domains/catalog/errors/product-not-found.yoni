@@ -1,0 +1,10 @@
+error ProductNotFound
+
+id: ERR_PROD_NOT_FOUND_001
+desc:
+  Product with given ID does not exist.
+
+code: CAT_404
+http_status: 404
+message: "Product not found."
+

@@ -1,0 +1,27 @@
+intent EditCustomer
+
+id: INT_EDIT_CUST_001
+desc:
+  Updates customer profile fields.
+
+input:
+  customer: @Entity.Customer
+  email: s
+
+validate:
+  @Rule.ActiveCustomer
+  @Constraint.EmailUnique
+
+process:
+  set customer.email email
+  save customer
+
+emit:
+  @Event.CustomerUpdated
+
+fail:
+  @Error.CustomerNotFound
+  @Error.EmailAlreadyExists
+
+return: @Entity.Customer
+

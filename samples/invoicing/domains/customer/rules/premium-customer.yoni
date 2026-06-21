@@ -1,0 +1,9 @@
+rule PremiumCustomer
+
+id: RULE_PREMIUM_001
+desc:
+  Customer has premium spend threshold.
+
+expression:
+  spend > 10000
+

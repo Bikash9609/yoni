@@ -1,0 +1,12 @@
+capability PDF
+
+id: CAP_PDF_001
+desc:
+  PDF document generation service.
+
+actions:
+  @Action.GeneratePDF
+config:
+  engine: s
+  template_dir: s
+

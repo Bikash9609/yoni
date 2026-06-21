@@ -1,0 +1,9 @@
+rule Adult
+
+id: RULE_ADULT_001
+desc:
+  Age is at least 18.
+
+expression:
+  age >= 18
+

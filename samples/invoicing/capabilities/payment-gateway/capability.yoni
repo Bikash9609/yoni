@@ -1,0 +1,13 @@
+capability PaymentGateway
+
+id: CAP_PAY_GATEWAY_001
+desc:
+  External payment gateway integration.
+
+actions:
+  @Action.ValidateEmail
+config:
+  provider: s
+  merchant_id: s
+  api_secret: s
+

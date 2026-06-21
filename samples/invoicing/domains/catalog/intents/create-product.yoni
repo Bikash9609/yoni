@@ -1,0 +1,30 @@
+intent CreateProduct
+
+id: INT_CREATE_PROD_001
+desc:
+  Creates a new product in the catalog.
+
+input:
+  name: s
+  category: s
+  base_price: f
+
+validate:
+  @Rule.InvoiceAmountPositive
+
+process:
+  new product @Entity.Product
+  set product.name name
+  set product.category category
+  set product.base_price base_price
+  set product.active true
+  save product
+
+emit:
+  @Event.ProductCreated
+
+fail:
+  @Error.ProductNotFound
+
+return: @Entity.Product
+

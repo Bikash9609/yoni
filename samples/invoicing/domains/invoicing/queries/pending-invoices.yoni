@@ -1,0 +1,14 @@
+query PendingInvoices
+
+id: QUERY_PENDING_INV_001
+desc:
+  Returns all pending invoices.
+
+entity: @Entity.Invoice
+where:
+  status == "STS_INVOICE_001.Pending"
+order_by:
+  due_date asc
+limit: 200
+return: list[@Entity.Invoice]
+

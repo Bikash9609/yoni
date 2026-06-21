@@ -1,0 +1,17 @@
+domain Catalog
+
+id: DOM_CATALOG_001
+desc:
+  Product catalog and pricing management.
+
+entities:
+  @Entity.Product
+  @Entity.PriceTier
+  @Entity.Discount
+rules:
+  @Rule.ProductActive
+  @Rule.DiscountValid
+events:
+  @Event.ProductCreated
+  @Event.PriceUpdated
+

@@ -1,0 +1,9 @@
+rule PaymentAmountValid
+
+id: RULE_PAY_AMOUNT_001
+desc:
+  Payment amount must be positive.
+
+expression:
+  amount > 0
+

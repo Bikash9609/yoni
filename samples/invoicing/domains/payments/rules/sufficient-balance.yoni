@@ -1,0 +1,9 @@
+rule SufficientBalance
+
+id: RULE_SUFF_BAL_001
+desc:
+  Customer has sufficient balance for payment.
+
+expression:
+  customer.spend >= amount
+

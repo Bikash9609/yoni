@@ -1,0 +1,11 @@
+event InvoiceCreated
+
+id: EVT_INV_CREATED_001
+desc:
+  New invoice was created.
+
+payload:
+  invoice_id: s
+  customer_id: s
+  amount: f
+

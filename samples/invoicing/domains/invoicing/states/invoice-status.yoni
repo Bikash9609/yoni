@@ -1,0 +1,20 @@
+state InvoiceStatus
+
+id: STS_INVOICE_001
+desc:
+  Lifecycle states for invoices.
+
+states:
+  Draft
+  Pending
+  Paid
+  Cancelled
+  Overdue
+transitions:
+  Draft -> Pending
+  Pending -> Paid
+  Pending -> Overdue
+  Pending -> Cancelled
+  Overdue -> Paid
+  Overdue -> Cancelled
+

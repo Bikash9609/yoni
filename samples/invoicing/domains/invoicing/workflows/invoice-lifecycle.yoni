@@ -1,0 +1,13 @@
+workflow InvoiceLifecycle
+
+id: WF_INV_LIFECYCLE_001
+desc:
+  Full invoice lifecycle from creation to payment.
+
+steps:
+  CreateInvoice: @Intent.CreateInvoice
+  CalculateTax: @Intent.CalculateTax
+  ApproveInvoice: @Intent.ApproveInvoice
+  SendInvoice: @Intent.SendInvoice
+  ProcessPayment: @Intent.ProcessPayment
+

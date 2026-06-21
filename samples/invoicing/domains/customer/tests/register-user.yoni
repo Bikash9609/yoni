@@ -1,0 +1,19 @@
+test RegisterUser
+
+id: TST_REGISTER_USER_001
+desc:
+  Customer is registered with valid email.
+
+given:
+  new customer @Entity.Customer
+  set customer.email "new@example.com"
+  set customer.age 25
+when:
+  intent @Intent.RegisterUser
+  email "new@example.com"
+  age 25
+expect:
+  eq return.email "new@example.com"
+  eq return.active true
+  emitted @Event.CustomerRegistered
+

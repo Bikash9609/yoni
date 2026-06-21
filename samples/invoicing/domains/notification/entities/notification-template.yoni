@@ -1,0 +1,14 @@
+entity NotificationTemplate
+
+id: ENT_NOTIF_TEMPLATE_001
+desc:
+  Reusable notification message template.
+
+fields:
+  template_id: s
+  name: s
+  subject: s
+  body: s
+  channel: s
+  active: b
+

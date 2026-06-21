@@ -1,0 +1,10 @@
+event CustomerSuspended
+
+id: EVT_CUST_SUSPENDED_001
+desc:
+  Customer account was suspended.
+
+payload:
+  customer_id: s
+  reason: s
+

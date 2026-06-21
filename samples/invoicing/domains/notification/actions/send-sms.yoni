@@ -1,0 +1,13 @@
+action SendSMS
+
+id: ACT_SEND_SMS_001
+desc:
+  Sends SMS notification to customer.
+
+uses: @Capability.Email
+input:
+  to: s
+  message: s
+result:
+  success: b
+

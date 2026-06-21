@@ -1,0 +1,10 @@
+error InsufficientBalance
+
+id: ERR_INSUFF_BAL_001
+desc:
+  Customer has insufficient balance for operation.
+
+code: INV_402
+http_status: 402
+message: "Insufficient balance."
+
