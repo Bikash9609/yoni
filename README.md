@@ -1,3 +1,6 @@
+<img width="2752" height="1536" alt="hero" src="https://github.com/user-attachments/assets/608298a6-5ed9-4783-9434-9fa59c3e4f97" />
+
+
 # Yoni
 
 **From one spec, everything emerges.**
