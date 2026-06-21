@@ -1,0 +1,186 @@
+{
+  "intent": "INT_ADD_LINE_ITEM_001",
+  "name": "AddLineItem",
+  "domain": "invoicing",
+  "desc": "Adds a line item to an invoice.",
+  "metadata": null,
+  "steps": [
+    {
+      "order": 1,
+      "type": "input",
+      "fields": [
+        {
+          "name": "invoice",
+          "type_name": "Entity",
+          "type_code": null,
+          "ref": "ENT_INVOICE_001"
+        },
+        {
+          "name": "product_id",
+          "type_name": "string",
+          "type_code": "s",
+          "ref": null
+        },
+        {
+          "name": "quantity",
+          "type_name": "integer",
+          "type_code": "i",
+          "ref": null
+        },
+        {
+          "name": "unit_price",
+          "type_name": "float",
+          "type_code": "f",
+          "ref": null
+        }
+      ],
+      "block": null,
+      "block_kind": null,
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 2,
+      "type": "validate",
+      "fields": [],
+      "block": "RULE_INV_AMOUNT_001",
+      "block_kind": "rule",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 3,
+      "type": "process",
+      "fields": [],
+      "block": null,
+      "block_kind": null,
+      "ops": [
+        {
+          "op": "new",
+          "target": "line_item",
+          "entity": "ENT_LINE_ITEM_001",
+          "value": null
+        },
+        {
+          "op": "set",
+          "target": "line_item.invoice_id",
+          "entity": null,
+          "value": {
+            "kind": "var",
+            "name": "invoice.invoice_id"
+          }
+        },
+        {
+          "op": "set",
+          "target": "line_item.product_id",
+          "entity": null,
+          "value": "product_id"
+        },
+        {
+          "op": "set",
+          "target": "line_item.quantity",
+          "entity": null,
+          "value": "quantity"
+        },
+        {
+          "op": "set",
+          "target": "line_item.unit_price",
+          "entity": null,
+          "value": "unit_price"
+        },
+        {
+          "op": "save",
+          "target": "line_item",
+          "entity": null,
+          "value": null
+        }
+      ],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 4,
+      "type": "fail",
+      "fields": [],
+      "block": null,
+      "block_kind": null,
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": [
+        "ERR_INV_NOT_FOUND_001",
+        "ERR_PROD_NOT_FOUND_001"
+      ]
+    },
+    {
+      "order": 5,
+      "type": "return",
+      "fields": [],
+      "block": "ENT_LINE_ITEM_001",
+      "block_kind": "entity",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    }
+  ],
+  "artifacts": [
+    {
+      "job": "entity_schema",
+      "block": "ENT_INVOICE_001",
+      "depends": []
+    },
+    {
+      "job": "entity_schema",
+      "block": "ENT_LINE_ITEM_001",
+      "depends": []
+    },
+    {
+      "job": "error_def",
+      "block": "ERR_INV_NOT_FOUND_001",
+      "depends": []
+    },
+    {
+      "job": "error_def",
+      "block": "ERR_PROD_NOT_FOUND_001",
+      "depends": []
+    },
+    {
+      "job": "rule_impl",
+      "block": "RULE_INV_AMOUNT_001",
+      "depends": []
+    },
+    {
+      "job": "intent_handler",
+      "block": "INT_ADD_LINE_ITEM_001",
+      "depends": [
+        "ENT_INVOICE_001",
+        "ENT_LINE_ITEM_001",
+        "ERR_INV_NOT_FOUND_001",
+        "ERR_PROD_NOT_FOUND_001",
+        "RULE_INV_AMOUNT_001"
+      ]
+    }
+  ],
+  "version": 1
+}

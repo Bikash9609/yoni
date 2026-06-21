@@ -73,11 +73,19 @@ Cache artifacts land in `.ai/cache/`:
 | `.ai/cache/ast/` | Per-file parse results + AST JSON |
 | `.ai/cache/normalized/normalized.json` | Normalized workspace |
 | `.ai/cache/graph/graph.json` | Knowledge graph (nodes + edges) |
+| `.ai/generation/plans/` | Execution plans (one JSON per intent) |
 
 Run impact analysis before changing an entity or rule:
 
 ```bash
 uv run python -m yoni impact ENT_CUSTOMER_001 --root samples/invoicing
+```
+
+Build an execution plan for one intent (or all intents with `--all`):
+
+```bash
+uv run python -m yoni plan INT_REGISTER_USER_001 --root samples/invoicing
+uv run python -m yoni plan --all --root samples/invoicing
 ```
 
 ---
@@ -100,7 +108,7 @@ The deterministic pipeline (no LLM) runs in this order:
 | **Validator** | Structure, naming, refs, cycles, repo layout | ✅ |
 | **Impact Analyzer** | Downstream blast radius for a block ID | ✅ |
 | **Repair Engine** | Deterministic spec patches from diagnostics | 🔜 |
-| **Execution Planner** | Ordered steps per intent | 🔜 |
+| **Execution Planner** | Ordered steps + artifacts per intent | ✅ |
 | **Generator** | Python, TS, SQL, infra, UI from valid specs | 🔜 |
 
 LLM is used **only** for generation, repair suggestions, documentation, and migration strategy — never for parse/validate/graph steps.
@@ -261,9 +269,19 @@ Lists all downstream intents, queries, views, tests, and deployments affected.
 
 Entity or state breaking changes require a `migration` block in `migrations/`.
 
-### 10. Generate implementation (when generator lands)
+### 10. Plan execution steps
 
-Generation runs **only after validation passes**. Output goes to `generated/` and can be deleted and regenerated at any time.
+After validation passes, build a deterministic execution plan per intent:
+
+```bash
+uv run python -m yoni plan INT_REGISTER_USER_001 --root path/to/my-project
+```
+
+Plans are written to `.ai/generation/plans/<INTENT_ID>.json` (steps + artifact list).
+
+### 11. Generate implementation (when generator lands)
+
+Generation runs **only after validation passes** and consumes execution plans. Output goes to `generated/` and can be deleted and regenerated at any time.
 
 ---
 
@@ -461,7 +479,7 @@ Include:
 - [x] Impact analyzer + CLI
 - [x] LSP + VS Code extension
 - [ ] Repair engine (deterministic patches)
-- [ ] Execution planner
+- [x] Execution planner + `yoni plan` CLI
 - [ ] Code generator (LLM-backed, spec-driven)
 - [ ] Semantic diff
 

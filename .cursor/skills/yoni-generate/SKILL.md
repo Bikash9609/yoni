@@ -15,6 +15,15 @@ Parser → AST → Normalizer → Graph → Validator ✓ → Execution Planner 
 
 If validation fails, repair Yoni source first (see `yoni-repair` skill).
 
+Build execution plans before generating code:
+
+```bash
+uv run python -m yoni plan INT_REGISTER_USER_001 --root <project-root>
+uv run python -m yoni plan --all --root <project-root>
+```
+
+Plans land in `.ai/generation/plans/<INTENT_ID>.json`.
+
 ## Generation contract
 
 - Read Yoni source only — do not infer meaning from existing `generated/` output

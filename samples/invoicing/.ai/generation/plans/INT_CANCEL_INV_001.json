@@ -1,0 +1,144 @@
+{
+  "intent": "INT_CANCEL_INV_001",
+  "name": "CancelInvoice",
+  "domain": "invoicing",
+  "desc": "Cancels a pending or overdue invoice.",
+  "metadata": null,
+  "steps": [
+    {
+      "order": 1,
+      "type": "input",
+      "fields": [
+        {
+          "name": "invoice",
+          "type_name": "Entity",
+          "type_code": null,
+          "ref": "ENT_INVOICE_001"
+        },
+        {
+          "name": "reason",
+          "type_name": "string",
+          "type_code": "s",
+          "ref": null
+        }
+      ],
+      "block": null,
+      "block_kind": null,
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 2,
+      "type": "process",
+      "fields": [],
+      "block": null,
+      "block_kind": null,
+      "ops": [
+        {
+          "op": "set",
+          "target": "invoice.status",
+          "entity": null,
+          "value": {
+            "state": "STS_INVOICE_001",
+            "name": "Cancelled"
+          }
+        },
+        {
+          "op": "save",
+          "target": "invoice",
+          "entity": null,
+          "value": null
+        }
+      ],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 3,
+      "type": "emit",
+      "fields": [],
+      "block": null,
+      "block_kind": "event",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": "EVT_INV_CANCELLED_001",
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 4,
+      "type": "fail",
+      "fields": [],
+      "block": null,
+      "block_kind": null,
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": [
+        "ERR_INV_NOT_FOUND_001",
+        "ERR_INVALID_STATE_001"
+      ]
+    },
+    {
+      "order": 5,
+      "type": "return",
+      "fields": [],
+      "block": "ENT_INVOICE_001",
+      "block_kind": "entity",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    }
+  ],
+  "artifacts": [
+    {
+      "job": "entity_schema",
+      "block": "ENT_INVOICE_001",
+      "depends": []
+    },
+    {
+      "job": "error_def",
+      "block": "ERR_INVALID_STATE_001",
+      "depends": []
+    },
+    {
+      "job": "error_def",
+      "block": "ERR_INV_NOT_FOUND_001",
+      "depends": []
+    },
+    {
+      "job": "state_machine",
+      "block": "STS_INVOICE_001",
+      "depends": []
+    },
+    {
+      "job": "intent_handler",
+      "block": "INT_CANCEL_INV_001",
+      "depends": [
+        "ENT_INVOICE_001",
+        "ERR_INVALID_STATE_001",
+        "ERR_INV_NOT_FOUND_001",
+        "STS_INVOICE_001"
+      ]
+    }
+  ],
+  "version": 1
+}

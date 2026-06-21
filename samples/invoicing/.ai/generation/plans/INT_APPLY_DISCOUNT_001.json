@@ -1,0 +1,158 @@
+{
+  "intent": "INT_APPLY_DISCOUNT_001",
+  "name": "ApplyDiscount",
+  "domain": "catalog",
+  "desc": "Applies a discount code to an order.",
+  "metadata": null,
+  "steps": [
+    {
+      "order": 1,
+      "type": "input",
+      "fields": [
+        {
+          "name": "discount",
+          "type_name": "Entity",
+          "type_code": null,
+          "ref": "ENT_DISCOUNT_001"
+        },
+        {
+          "name": "order",
+          "type_name": "Entity",
+          "type_code": null,
+          "ref": "ENT_ORDER_001"
+        }
+      ],
+      "block": null,
+      "block_kind": null,
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 2,
+      "type": "validate",
+      "fields": [],
+      "block": "RULE_DISCOUNT_VALID_001",
+      "block_kind": "rule",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 3,
+      "type": "process",
+      "fields": [],
+      "block": null,
+      "block_kind": null,
+      "ops": [
+        {
+          "op": "set",
+          "target": "discount.used_count",
+          "entity": null,
+          "value": {
+            "kind": "value",
+            "value": 1,
+            "type": "integer"
+          }
+        },
+        {
+          "op": "save",
+          "target": "discount",
+          "entity": null,
+          "value": null
+        }
+      ],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 4,
+      "type": "emit",
+      "fields": [],
+      "block": null,
+      "block_kind": "event",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": "EVT_PRICE_UPDATED_001",
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 5,
+      "type": "fail",
+      "fields": [],
+      "block": null,
+      "block_kind": null,
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": [
+        "ERR_PROD_NOT_FOUND_001"
+      ]
+    },
+    {
+      "order": 6,
+      "type": "return",
+      "fields": [],
+      "block": "ENT_DISCOUNT_001",
+      "block_kind": "entity",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    }
+  ],
+  "artifacts": [
+    {
+      "job": "entity_schema",
+      "block": "ENT_DISCOUNT_001",
+      "depends": []
+    },
+    {
+      "job": "entity_schema",
+      "block": "ENT_ORDER_001",
+      "depends": []
+    },
+    {
+      "job": "error_def",
+      "block": "ERR_PROD_NOT_FOUND_001",
+      "depends": []
+    },
+    {
+      "job": "rule_impl",
+      "block": "RULE_DISCOUNT_VALID_001",
+      "depends": []
+    },
+    {
+      "job": "intent_handler",
+      "block": "INT_APPLY_DISCOUNT_001",
+      "depends": [
+        "ENT_DISCOUNT_001",
+        "ENT_ORDER_001",
+        "ERR_PROD_NOT_FOUND_001",
+        "RULE_DISCOUNT_VALID_001"
+      ]
+    }
+  ],
+  "version": 1
+}

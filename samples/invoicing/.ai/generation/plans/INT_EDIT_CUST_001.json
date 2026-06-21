@@ -1,0 +1,175 @@
+{
+  "intent": "INT_EDIT_CUST_001",
+  "name": "EditCustomer",
+  "domain": "customer",
+  "desc": "Updates customer profile fields.",
+  "metadata": null,
+  "steps": [
+    {
+      "order": 1,
+      "type": "input",
+      "fields": [
+        {
+          "name": "customer",
+          "type_name": "Entity",
+          "type_code": null,
+          "ref": "ENT_CUSTOMER_001"
+        },
+        {
+          "name": "email",
+          "type_name": "string",
+          "type_code": "s",
+          "ref": null
+        }
+      ],
+      "block": null,
+      "block_kind": null,
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 2,
+      "type": "validate",
+      "fields": [],
+      "block": "RULE_ACTIVE_CUST_001",
+      "block_kind": "rule",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 3,
+      "type": "validate",
+      "fields": [],
+      "block": "CNST_EMAIL_UNIQUE_001",
+      "block_kind": "constraint",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 4,
+      "type": "process",
+      "fields": [],
+      "block": null,
+      "block_kind": null,
+      "ops": [
+        {
+          "op": "set",
+          "target": "customer.email",
+          "entity": null,
+          "value": "email"
+        },
+        {
+          "op": "save",
+          "target": "customer",
+          "entity": null,
+          "value": null
+        }
+      ],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 5,
+      "type": "emit",
+      "fields": [],
+      "block": null,
+      "block_kind": "event",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": "EVT_CUST_UPDATED_001",
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 6,
+      "type": "fail",
+      "fields": [],
+      "block": null,
+      "block_kind": null,
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": [
+        "ERR_CUST_NOT_FOUND_001",
+        "ERR_EMAIL_EXISTS_001"
+      ]
+    },
+    {
+      "order": 7,
+      "type": "return",
+      "fields": [],
+      "block": "ENT_CUSTOMER_001",
+      "block_kind": "entity",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    }
+  ],
+  "artifacts": [
+    {
+      "job": "constraint_impl",
+      "block": "CNST_EMAIL_UNIQUE_001",
+      "depends": []
+    },
+    {
+      "job": "entity_schema",
+      "block": "ENT_CUSTOMER_001",
+      "depends": []
+    },
+    {
+      "job": "error_def",
+      "block": "ERR_CUST_NOT_FOUND_001",
+      "depends": []
+    },
+    {
+      "job": "error_def",
+      "block": "ERR_EMAIL_EXISTS_001",
+      "depends": []
+    },
+    {
+      "job": "rule_impl",
+      "block": "RULE_ACTIVE_CUST_001",
+      "depends": []
+    },
+    {
+      "job": "intent_handler",
+      "block": "INT_EDIT_CUST_001",
+      "depends": [
+        "CNST_EMAIL_UNIQUE_001",
+        "ENT_CUSTOMER_001",
+        "ERR_CUST_NOT_FOUND_001",
+        "ERR_EMAIL_EXISTS_001",
+        "RULE_ACTIVE_CUST_001"
+      ]
+    }
+  ],
+  "version": 1
+}

@@ -1,0 +1,157 @@
+{
+  "intent": "INT_ADD_PAY_METHOD_001",
+  "name": "AddPaymentMethod",
+  "domain": "payments",
+  "desc": "Adds a payment method to customer account.",
+  "metadata": null,
+  "steps": [
+    {
+      "order": 1,
+      "type": "input",
+      "fields": [
+        {
+          "name": "customer",
+          "type_name": "Entity",
+          "type_code": null,
+          "ref": "ENT_CUSTOMER_001"
+        },
+        {
+          "name": "last_four",
+          "type_name": "string",
+          "type_code": "s",
+          "ref": null
+        },
+        {
+          "name": "type",
+          "type_name": "string",
+          "type_code": "s",
+          "ref": null
+        }
+      ],
+      "block": null,
+      "block_kind": null,
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 2,
+      "type": "process",
+      "fields": [],
+      "block": null,
+      "block_kind": null,
+      "ops": [
+        {
+          "op": "new",
+          "target": "method",
+          "entity": "ENT_PAY_METHOD_001",
+          "value": null
+        },
+        {
+          "op": "set",
+          "target": "method.customer_id",
+          "entity": null,
+          "value": {
+            "kind": "var",
+            "name": "customer.customer_id"
+          }
+        },
+        {
+          "op": "set",
+          "target": "method.type",
+          "entity": null,
+          "value": "type"
+        },
+        {
+          "op": "set",
+          "target": "method.last_four",
+          "entity": null,
+          "value": "last_four"
+        },
+        {
+          "op": "set",
+          "target": "method.active",
+          "entity": null,
+          "value": {
+            "kind": "value",
+            "value": true,
+            "type": "boolean"
+          }
+        },
+        {
+          "op": "save",
+          "target": "method",
+          "entity": null,
+          "value": null
+        }
+      ],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 3,
+      "type": "fail",
+      "fields": [],
+      "block": null,
+      "block_kind": null,
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": [
+        "ERR_CUST_NOT_FOUND_001"
+      ]
+    },
+    {
+      "order": 4,
+      "type": "return",
+      "fields": [],
+      "block": "ENT_PAY_METHOD_001",
+      "block_kind": "entity",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    }
+  ],
+  "artifacts": [
+    {
+      "job": "entity_schema",
+      "block": "ENT_CUSTOMER_001",
+      "depends": []
+    },
+    {
+      "job": "entity_schema",
+      "block": "ENT_PAY_METHOD_001",
+      "depends": []
+    },
+    {
+      "job": "error_def",
+      "block": "ERR_CUST_NOT_FOUND_001",
+      "depends": []
+    },
+    {
+      "job": "intent_handler",
+      "block": "INT_ADD_PAY_METHOD_001",
+      "depends": [
+        "ENT_CUSTOMER_001",
+        "ENT_PAY_METHOD_001",
+        "ERR_CUST_NOT_FOUND_001"
+      ]
+    }
+  ],
+  "version": 1
+}

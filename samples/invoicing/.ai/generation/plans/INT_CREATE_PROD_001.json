@@ -1,0 +1,182 @@
+{
+  "intent": "INT_CREATE_PROD_001",
+  "name": "CreateProduct",
+  "domain": "catalog",
+  "desc": "Creates a new product in the catalog.",
+  "metadata": null,
+  "steps": [
+    {
+      "order": 1,
+      "type": "input",
+      "fields": [
+        {
+          "name": "base_price",
+          "type_name": "float",
+          "type_code": "f",
+          "ref": null
+        },
+        {
+          "name": "category",
+          "type_name": "string",
+          "type_code": "s",
+          "ref": null
+        },
+        {
+          "name": "name",
+          "type_name": "string",
+          "type_code": "s",
+          "ref": null
+        }
+      ],
+      "block": null,
+      "block_kind": null,
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 2,
+      "type": "validate",
+      "fields": [],
+      "block": "RULE_INV_AMOUNT_001",
+      "block_kind": "rule",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 3,
+      "type": "process",
+      "fields": [],
+      "block": null,
+      "block_kind": null,
+      "ops": [
+        {
+          "op": "new",
+          "target": "product",
+          "entity": "ENT_PRODUCT_001",
+          "value": null
+        },
+        {
+          "op": "set",
+          "target": "product.name",
+          "entity": null,
+          "value": "name"
+        },
+        {
+          "op": "set",
+          "target": "product.category",
+          "entity": null,
+          "value": "category"
+        },
+        {
+          "op": "set",
+          "target": "product.base_price",
+          "entity": null,
+          "value": "base_price"
+        },
+        {
+          "op": "set",
+          "target": "product.active",
+          "entity": null,
+          "value": {
+            "kind": "value",
+            "value": true,
+            "type": "boolean"
+          }
+        },
+        {
+          "op": "save",
+          "target": "product",
+          "entity": null,
+          "value": null
+        }
+      ],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 4,
+      "type": "emit",
+      "fields": [],
+      "block": null,
+      "block_kind": "event",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": "EVT_PROD_CREATED_001",
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 5,
+      "type": "fail",
+      "fields": [],
+      "block": null,
+      "block_kind": null,
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": [
+        "ERR_PROD_NOT_FOUND_001"
+      ]
+    },
+    {
+      "order": 6,
+      "type": "return",
+      "fields": [],
+      "block": "ENT_PRODUCT_001",
+      "block_kind": "entity",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    }
+  ],
+  "artifacts": [
+    {
+      "job": "entity_schema",
+      "block": "ENT_PRODUCT_001",
+      "depends": []
+    },
+    {
+      "job": "error_def",
+      "block": "ERR_PROD_NOT_FOUND_001",
+      "depends": []
+    },
+    {
+      "job": "rule_impl",
+      "block": "RULE_INV_AMOUNT_001",
+      "depends": []
+    },
+    {
+      "job": "intent_handler",
+      "block": "INT_CREATE_PROD_001",
+      "depends": [
+        "ENT_PRODUCT_001",
+        "ERR_PROD_NOT_FOUND_001",
+        "RULE_INV_AMOUNT_001"
+      ]
+    }
+  ],
+  "version": 1
+}

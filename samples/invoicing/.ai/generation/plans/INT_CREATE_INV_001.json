@@ -1,0 +1,263 @@
+{
+  "intent": "INT_CREATE_INV_001",
+  "name": "CreateInvoice",
+  "domain": "invoicing",
+  "desc": "Creates invoice for an approved order.",
+  "metadata": {
+    "sla": "500ms",
+    "criticality": "high",
+    "owner": "billing-team"
+  },
+  "steps": [
+    {
+      "order": 1,
+      "type": "input",
+      "fields": [
+        {
+          "name": "customer",
+          "type_name": "Entity",
+          "type_code": null,
+          "ref": "ENT_CUSTOMER_001"
+        },
+        {
+          "name": "order",
+          "type_name": "Entity",
+          "type_code": null,
+          "ref": "ENT_ORDER_001"
+        },
+        {
+          "name": "order_id",
+          "type_name": "string",
+          "type_code": "s",
+          "ref": null
+        }
+      ],
+      "block": null,
+      "block_kind": null,
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 2,
+      "type": "validate",
+      "fields": [],
+      "block": "RULE_ELIGIBLE_001",
+      "block_kind": "rule",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 3,
+      "type": "validate",
+      "fields": [],
+      "block": "RULE_ORDER_APPROVED_001",
+      "block_kind": "rule",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 4,
+      "type": "validate",
+      "fields": [],
+      "block": "RULE_INV_AMOUNT_001",
+      "block_kind": "rule",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 5,
+      "type": "process",
+      "fields": [],
+      "block": null,
+      "block_kind": null,
+      "ops": [
+        {
+          "op": "new",
+          "target": "invoice",
+          "entity": "ENT_INVOICE_001",
+          "value": null
+        },
+        {
+          "op": "set",
+          "target": "invoice.customer_id",
+          "entity": null,
+          "value": {
+            "kind": "var",
+            "name": "customer.customer_id"
+          }
+        },
+        {
+          "op": "set",
+          "target": "invoice.order_id",
+          "entity": null,
+          "value": "order_id"
+        },
+        {
+          "op": "set",
+          "target": "invoice.status",
+          "entity": null,
+          "value": {
+            "state": "STS_INVOICE_001",
+            "name": "Draft"
+          }
+        },
+        {
+          "op": "set",
+          "target": "invoice.amount",
+          "entity": null,
+          "value": {
+            "kind": "var",
+            "name": "order.total"
+          }
+        },
+        {
+          "op": "save",
+          "target": "invoice",
+          "entity": null,
+          "value": null
+        }
+      ],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 6,
+      "type": "emit",
+      "fields": [],
+      "block": null,
+      "block_kind": "event",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": "EVT_INV_CREATED_001",
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 7,
+      "type": "fail",
+      "fields": [],
+      "block": null,
+      "block_kind": null,
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": [
+        "ERR_CUST_NOT_FOUND_001",
+        "ERR_INSUFF_BAL_001",
+        "ERR_INVALID_STATE_001"
+      ]
+    },
+    {
+      "order": 8,
+      "type": "return",
+      "fields": [],
+      "block": "ENT_INVOICE_001",
+      "block_kind": "entity",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    }
+  ],
+  "artifacts": [
+    {
+      "job": "entity_schema",
+      "block": "ENT_CUSTOMER_001",
+      "depends": []
+    },
+    {
+      "job": "entity_schema",
+      "block": "ENT_INVOICE_001",
+      "depends": []
+    },
+    {
+      "job": "entity_schema",
+      "block": "ENT_ORDER_001",
+      "depends": []
+    },
+    {
+      "job": "error_def",
+      "block": "ERR_CUST_NOT_FOUND_001",
+      "depends": []
+    },
+    {
+      "job": "error_def",
+      "block": "ERR_INSUFF_BAL_001",
+      "depends": []
+    },
+    {
+      "job": "error_def",
+      "block": "ERR_INVALID_STATE_001",
+      "depends": []
+    },
+    {
+      "job": "rule_impl",
+      "block": "RULE_ELIGIBLE_001",
+      "depends": []
+    },
+    {
+      "job": "rule_impl",
+      "block": "RULE_INV_AMOUNT_001",
+      "depends": []
+    },
+    {
+      "job": "rule_impl",
+      "block": "RULE_ORDER_APPROVED_001",
+      "depends": []
+    },
+    {
+      "job": "state_machine",
+      "block": "STS_INVOICE_001",
+      "depends": []
+    },
+    {
+      "job": "intent_handler",
+      "block": "INT_CREATE_INV_001",
+      "depends": [
+        "ENT_CUSTOMER_001",
+        "ENT_INVOICE_001",
+        "ENT_ORDER_001",
+        "ERR_CUST_NOT_FOUND_001",
+        "ERR_INSUFF_BAL_001",
+        "ERR_INVALID_STATE_001",
+        "RULE_ELIGIBLE_001",
+        "RULE_INV_AMOUNT_001",
+        "RULE_ORDER_APPROVED_001",
+        "STS_INVOICE_001"
+      ]
+    }
+  ],
+  "version": 1
+}

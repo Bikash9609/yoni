@@ -1,0 +1,181 @@
+{
+  "intent": "INT_SEND_WELCOME_001",
+  "name": "SendWelcomeEmail",
+  "domain": "notification",
+  "desc": "Sends welcome email to newly registered customer.",
+  "metadata": null,
+  "steps": [
+    {
+      "order": 1,
+      "type": "input",
+      "fields": [
+        {
+          "name": "customer",
+          "type_name": "Entity",
+          "type_code": null,
+          "ref": "ENT_CUSTOMER_001"
+        },
+        {
+          "name": "template",
+          "type_name": "Entity",
+          "type_code": null,
+          "ref": "ENT_NOTIF_TEMPLATE_001"
+        }
+      ],
+      "block": null,
+      "block_kind": null,
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 2,
+      "type": "validate",
+      "fields": [],
+      "block": "RULE_ACTIVE_CUST_001",
+      "block_kind": "rule",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 3,
+      "type": "process",
+      "fields": [],
+      "block": null,
+      "block_kind": null,
+      "ops": [
+        {
+          "op": "new",
+          "target": "log",
+          "entity": "ENT_NOTIF_LOG_001",
+          "value": null
+        },
+        {
+          "op": "set",
+          "target": "log.customer_id",
+          "entity": null,
+          "value": {
+            "kind": "var",
+            "name": "customer.customer_id"
+          }
+        },
+        {
+          "op": "set",
+          "target": "log.channel",
+          "entity": null,
+          "value": "email"
+        },
+        {
+          "op": "set",
+          "target": "log.status",
+          "entity": null,
+          "value": "sent"
+        },
+        {
+          "op": "save",
+          "target": "log",
+          "entity": null,
+          "value": null
+        }
+      ],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 4,
+      "type": "emit",
+      "fields": [],
+      "block": null,
+      "block_kind": "event",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": "EVT_NOTIF_SENT_001",
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 5,
+      "type": "fail",
+      "fields": [],
+      "block": null,
+      "block_kind": null,
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": [
+        "ERR_CUST_NOT_FOUND_001"
+      ]
+    },
+    {
+      "order": 6,
+      "type": "return",
+      "fields": [],
+      "block": "ENT_NOTIF_LOG_001",
+      "block_kind": "entity",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    }
+  ],
+  "artifacts": [
+    {
+      "job": "entity_schema",
+      "block": "ENT_CUSTOMER_001",
+      "depends": []
+    },
+    {
+      "job": "entity_schema",
+      "block": "ENT_NOTIF_LOG_001",
+      "depends": []
+    },
+    {
+      "job": "entity_schema",
+      "block": "ENT_NOTIF_TEMPLATE_001",
+      "depends": []
+    },
+    {
+      "job": "error_def",
+      "block": "ERR_CUST_NOT_FOUND_001",
+      "depends": []
+    },
+    {
+      "job": "rule_impl",
+      "block": "RULE_ACTIVE_CUST_001",
+      "depends": []
+    },
+    {
+      "job": "intent_handler",
+      "block": "INT_SEND_WELCOME_001",
+      "depends": [
+        "ENT_CUSTOMER_001",
+        "ENT_NOTIF_LOG_001",
+        "ENT_NOTIF_TEMPLATE_001",
+        "ERR_CUST_NOT_FOUND_001",
+        "RULE_ACTIVE_CUST_001"
+      ]
+    }
+  ],
+  "version": 1
+}

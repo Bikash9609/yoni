@@ -1,0 +1,202 @@
+{
+  "intent": "INT_REFUND_PAY_001",
+  "name": "RefundPayment",
+  "domain": "payments",
+  "desc": "Refunds a completed payment.",
+  "metadata": null,
+  "steps": [
+    {
+      "order": 1,
+      "type": "input",
+      "fields": [
+        {
+          "name": "amount",
+          "type_name": "float",
+          "type_code": "f",
+          "ref": null
+        },
+        {
+          "name": "payment",
+          "type_name": "Entity",
+          "type_code": null,
+          "ref": "ENT_PAYMENT_001"
+        },
+        {
+          "name": "reason",
+          "type_name": "string",
+          "type_code": "s",
+          "ref": null
+        }
+      ],
+      "block": null,
+      "block_kind": null,
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 2,
+      "type": "validate",
+      "fields": [],
+      "block": "RULE_PAY_AMOUNT_001",
+      "block_kind": "rule",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 3,
+      "type": "process",
+      "fields": [],
+      "block": null,
+      "block_kind": null,
+      "ops": [
+        {
+          "op": "new",
+          "target": "refund",
+          "entity": "ENT_REFUND_001",
+          "value": null
+        },
+        {
+          "op": "set",
+          "target": "refund.payment_id",
+          "entity": null,
+          "value": {
+            "kind": "var",
+            "name": "payment.payment_id"
+          }
+        },
+        {
+          "op": "set",
+          "target": "refund.amount",
+          "entity": null,
+          "value": "amount"
+        },
+        {
+          "op": "set",
+          "target": "refund.reason",
+          "entity": null,
+          "value": "reason"
+        },
+        {
+          "op": "save",
+          "target": "refund",
+          "entity": null,
+          "value": null
+        },
+        {
+          "op": "set",
+          "target": "payment.status",
+          "entity": null,
+          "value": {
+            "state": "STS_PAYMENT_001",
+            "name": "Refunded"
+          }
+        },
+        {
+          "op": "save",
+          "target": "payment",
+          "entity": null,
+          "value": null
+        }
+      ],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 4,
+      "type": "emit",
+      "fields": [],
+      "block": null,
+      "block_kind": "event",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": "EVT_PAY_PROCESSED_001",
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 5,
+      "type": "fail",
+      "fields": [],
+      "block": null,
+      "block_kind": null,
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": [
+        "ERR_PAY_DECLINED_001"
+      ]
+    },
+    {
+      "order": 6,
+      "type": "return",
+      "fields": [],
+      "block": "ENT_REFUND_001",
+      "block_kind": "entity",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    }
+  ],
+  "artifacts": [
+    {
+      "job": "entity_schema",
+      "block": "ENT_PAYMENT_001",
+      "depends": []
+    },
+    {
+      "job": "entity_schema",
+      "block": "ENT_REFUND_001",
+      "depends": []
+    },
+    {
+      "job": "error_def",
+      "block": "ERR_PAY_DECLINED_001",
+      "depends": []
+    },
+    {
+      "job": "rule_impl",
+      "block": "RULE_PAY_AMOUNT_001",
+      "depends": []
+    },
+    {
+      "job": "state_machine",
+      "block": "STS_PAYMENT_001",
+      "depends": []
+    },
+    {
+      "job": "intent_handler",
+      "block": "INT_REFUND_PAY_001",
+      "depends": [
+        "ENT_PAYMENT_001",
+        "ENT_REFUND_001",
+        "ERR_PAY_DECLINED_001",
+        "RULE_PAY_AMOUNT_001",
+        "STS_PAYMENT_001"
+      ]
+    }
+  ],
+  "version": 1
+}

@@ -1,0 +1,152 @@
+{
+  "intent": "INT_CALC_TAX_001",
+  "name": "CalculateTax",
+  "domain": "invoicing",
+  "desc": "Calculates tax for an invoice based on region.",
+  "metadata": null,
+  "steps": [
+    {
+      "order": 1,
+      "type": "input",
+      "fields": [
+        {
+          "name": "invoice",
+          "type_name": "Entity",
+          "type_code": null,
+          "ref": "ENT_INVOICE_001"
+        },
+        {
+          "name": "tax_rate",
+          "type_name": "Entity",
+          "type_code": null,
+          "ref": "ENT_TAX_RATE_001"
+        }
+      ],
+      "block": null,
+      "block_kind": null,
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 2,
+      "type": "validate",
+      "fields": [],
+      "block": "RULE_INV_AMOUNT_001",
+      "block_kind": "rule",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 3,
+      "type": "process",
+      "fields": [],
+      "block": null,
+      "block_kind": null,
+      "ops": [
+        {
+          "op": "set",
+          "target": "invoice.tax_amount",
+          "entity": null,
+          "value": {
+            "kind": "var",
+            "name": "tax_rate.rate"
+          }
+        },
+        {
+          "op": "set",
+          "target": "invoice.total",
+          "entity": null,
+          "value": {
+            "kind": "var",
+            "name": "invoice.amount"
+          }
+        },
+        {
+          "op": "save",
+          "target": "invoice",
+          "entity": null,
+          "value": null
+        }
+      ],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 4,
+      "type": "fail",
+      "fields": [],
+      "block": null,
+      "block_kind": null,
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": [
+        "ERR_INV_NOT_FOUND_001"
+      ]
+    },
+    {
+      "order": 5,
+      "type": "return",
+      "fields": [],
+      "block": "ENT_INVOICE_001",
+      "block_kind": "entity",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    }
+  ],
+  "artifacts": [
+    {
+      "job": "entity_schema",
+      "block": "ENT_INVOICE_001",
+      "depends": []
+    },
+    {
+      "job": "entity_schema",
+      "block": "ENT_TAX_RATE_001",
+      "depends": []
+    },
+    {
+      "job": "error_def",
+      "block": "ERR_INV_NOT_FOUND_001",
+      "depends": []
+    },
+    {
+      "job": "rule_impl",
+      "block": "RULE_INV_AMOUNT_001",
+      "depends": []
+    },
+    {
+      "job": "intent_handler",
+      "block": "INT_CALC_TAX_001",
+      "depends": [
+        "ENT_INVOICE_001",
+        "ENT_TAX_RATE_001",
+        "ERR_INV_NOT_FOUND_001",
+        "RULE_INV_AMOUNT_001"
+      ]
+    }
+  ],
+  "version": 1
+}

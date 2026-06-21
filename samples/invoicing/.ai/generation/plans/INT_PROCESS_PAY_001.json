@@ -1,0 +1,290 @@
+{
+  "intent": "INT_PROCESS_PAY_001",
+  "name": "ProcessPayment",
+  "domain": "payments",
+  "desc": "Processes payment for an invoice.",
+  "metadata": {
+    "sla": "2s",
+    "criticality": "critical",
+    "owner": "payments-team"
+  },
+  "steps": [
+    {
+      "order": 1,
+      "type": "input",
+      "fields": [
+        {
+          "name": "amount",
+          "type_name": "float",
+          "type_code": "f",
+          "ref": null
+        },
+        {
+          "name": "customer",
+          "type_name": "Entity",
+          "type_code": null,
+          "ref": "ENT_CUSTOMER_001"
+        },
+        {
+          "name": "invoice",
+          "type_name": "Entity",
+          "type_code": null,
+          "ref": "ENT_INVOICE_001"
+        },
+        {
+          "name": "method",
+          "type_name": "Entity",
+          "type_code": null,
+          "ref": "ENT_PAY_METHOD_001"
+        }
+      ],
+      "block": null,
+      "block_kind": null,
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 2,
+      "type": "validate",
+      "fields": [],
+      "block": "RULE_PAY_AMOUNT_001",
+      "block_kind": "rule",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 3,
+      "type": "validate",
+      "fields": [],
+      "block": "RULE_SUFF_BAL_001",
+      "block_kind": "rule",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 4,
+      "type": "process",
+      "fields": [],
+      "block": null,
+      "block_kind": null,
+      "ops": [
+        {
+          "op": "new",
+          "target": "payment",
+          "entity": "ENT_PAYMENT_001",
+          "value": null
+        },
+        {
+          "op": "set",
+          "target": "payment.invoice_id",
+          "entity": null,
+          "value": {
+            "kind": "var",
+            "name": "invoice.invoice_id"
+          }
+        },
+        {
+          "op": "set",
+          "target": "payment.customer_id",
+          "entity": null,
+          "value": {
+            "kind": "var",
+            "name": "customer.customer_id"
+          }
+        },
+        {
+          "op": "set",
+          "target": "payment.amount",
+          "entity": null,
+          "value": "amount"
+        },
+        {
+          "op": "set",
+          "target": "payment.status",
+          "entity": null,
+          "value": {
+            "state": "STS_PAYMENT_001",
+            "name": "Completed"
+          }
+        },
+        {
+          "op": "save",
+          "target": "payment",
+          "entity": null,
+          "value": null
+        },
+        {
+          "op": "set",
+          "target": "invoice.status",
+          "entity": null,
+          "value": {
+            "state": "STS_INVOICE_001",
+            "name": "Paid"
+          }
+        },
+        {
+          "op": "save",
+          "target": "invoice",
+          "entity": null,
+          "value": null
+        }
+      ],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 5,
+      "type": "emit",
+      "fields": [],
+      "block": null,
+      "block_kind": "event",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": "EVT_PAY_PROCESSED_001",
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 6,
+      "type": "emit",
+      "fields": [],
+      "block": null,
+      "block_kind": "event",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": "EVT_INVOICE_PAID_002",
+      "error": null,
+      "refs": []
+    },
+    {
+      "order": 7,
+      "type": "fail",
+      "fields": [],
+      "block": null,
+      "block_kind": null,
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": [
+        "ERR_PAY_DECLINED_001",
+        "ERR_INSUFF_BAL_001",
+        "ERR_INV_NOT_FOUND_001"
+      ]
+    },
+    {
+      "order": 8,
+      "type": "return",
+      "fields": [],
+      "block": "ENT_PAYMENT_001",
+      "block_kind": "entity",
+      "ops": [],
+      "query": null,
+      "action": null,
+      "result": null,
+      "event": null,
+      "error": null,
+      "refs": []
+    }
+  ],
+  "artifacts": [
+    {
+      "job": "entity_schema",
+      "block": "ENT_CUSTOMER_001",
+      "depends": []
+    },
+    {
+      "job": "entity_schema",
+      "block": "ENT_INVOICE_001",
+      "depends": []
+    },
+    {
+      "job": "entity_schema",
+      "block": "ENT_PAYMENT_001",
+      "depends": []
+    },
+    {
+      "job": "entity_schema",
+      "block": "ENT_PAY_METHOD_001",
+      "depends": []
+    },
+    {
+      "job": "error_def",
+      "block": "ERR_INSUFF_BAL_001",
+      "depends": []
+    },
+    {
+      "job": "error_def",
+      "block": "ERR_INV_NOT_FOUND_001",
+      "depends": []
+    },
+    {
+      "job": "error_def",
+      "block": "ERR_PAY_DECLINED_001",
+      "depends": []
+    },
+    {
+      "job": "rule_impl",
+      "block": "RULE_PAY_AMOUNT_001",
+      "depends": []
+    },
+    {
+      "job": "rule_impl",
+      "block": "RULE_SUFF_BAL_001",
+      "depends": []
+    },
+    {
+      "job": "state_machine",
+      "block": "STS_INVOICE_001",
+      "depends": []
+    },
+    {
+      "job": "state_machine",
+      "block": "STS_PAYMENT_001",
+      "depends": []
+    },
+    {
+      "job": "intent_handler",
+      "block": "INT_PROCESS_PAY_001",
+      "depends": [
+        "ENT_CUSTOMER_001",
+        "ENT_INVOICE_001",
+        "ENT_PAYMENT_001",
+        "ENT_PAY_METHOD_001",
+        "ERR_INSUFF_BAL_001",
+        "ERR_INV_NOT_FOUND_001",
+        "ERR_PAY_DECLINED_001",
+        "RULE_PAY_AMOUNT_001",
+        "RULE_SUFF_BAL_001",
+        "STS_INVOICE_001",
+        "STS_PAYMENT_001"
+      ]
+    }
+  ],
+  "version": 1
+}

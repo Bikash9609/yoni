@@ -11,6 +11,10 @@ def main(argv: list[str] | None = None) -> int:
         from yoni.impact.cli import main as impact_main
 
         return impact_main(args[1:])
+    if args and args[0] == "plan":
+        from yoni.planner.cli import main as plan_main
+
+        return plan_main(args[1:])
     from yoni.compile import main as compile_main
 
     return compile_main(args)
