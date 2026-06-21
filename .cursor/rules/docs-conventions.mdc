@@ -28,4 +28,6 @@ New docs follow the same prefix pattern. Increment the prefix for new authoritat
 | `01-yoni-language-spec.md` | Repo structure, linter, VS Code plan |
 | `02-how-yoni-differes.md` | Why compiler/validator matters |
 | `03-final-yoni-specs.md` | AST schemas, graph, repair, execution plan |
+| `04-languages-while-building.md` | Language choices for compiler vs AI layer |
+| `05-code-generation-mechanism.md` | Incremental generation: planner, jobs, manifest, context |
 | `MANDATORY.md` | Core Yoni philosophy and block glossary |
