@@ -10,6 +10,7 @@ from yoni.generator.models import (
     ResolvedScope,
     ScopeRequest,
 )
+from yoni.generator.execute import run_all_pending, run_next_job
 from yoni.generator.queue import build_queue
 from yoni.generator.run import prepare_generation, prepare_impact_regen, scope_from_intent
 from yoni.generator.scope import resolve_scope
@@ -29,5 +30,7 @@ __all__ = [
     "prepare_generation",
     "prepare_impact_regen",
     "resolve_scope",
+    "run_all_pending",
+    "run_next_job",
     "scope_from_intent",
 ]

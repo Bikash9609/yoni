@@ -6,7 +6,8 @@ import argparse
 from pathlib import Path
 
 from yoni.generator.errors import GenerateError
-from yoni.generator.models import GenerationLayer
+from yoni.generator.execute import run_all_pending, run_next_job
+from yoni.generator.models import GenerationLayer, JobStatus
 from yoni.generator.run import (
     continue_session,
     next_pending,
@@ -15,7 +16,7 @@ from yoni.generator.run import (
     scope_from_domain,
     scope_from_intent,
 )
-from yoni.generator.session import save_session
+from yoni.generator.session import load_session, save_session
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -68,14 +69,30 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--list-queue",
         action="store_true",
-        help="With --continue, list full queue instead of next job only",
+        help="With --continue, list full queue instead of running jobs",
+    )
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        help="With --continue, run all pending jobs until complete or failure",
+    )
+    parser.add_argument(
+        "--run",
+        action="store_true",
+        help="After preparing queue, run all pending deterministic jobs",
     )
     args = parser.parse_args(argv)
 
     project_root = Path(args.root).resolve()
 
     if args.continue_id:
-        return _continue(project_root, args.continue_id, list_queue=args.list_queue)
+        return _continue(
+            project_root,
+            args.continue_id,
+            list_queue=args.list_queue,
+            run_all=args.all,
+            require_valid=not args.skip_validation,
+        )
 
     if args.impact:
         return _impact(
@@ -106,6 +123,27 @@ def main(argv: list[str] | None = None) -> int:
     print(f"-> {manifest_path}")
     for job in session.queue:
         print(f"  {job.id} [{job.status.value}] {job.type.value} {job.block} -> {job.artifact}")
+
+    if args.run:
+        results = run_all_pending(
+            project_root,
+            session.session_id,
+            require_valid=not args.skip_validation,
+        )
+        for result in results:
+            print(
+                f"ran {result.job_id} [{result.status.value}] "
+                f"{result.job_type.value} -> {result.artifact}"
+            )
+            for error in result.errors:
+                print(f"  error: {error}")
+            if result.status == JobStatus.FAILED:
+                return 1
+        pending = next_pending(load_session(project_root) or session)
+        if pending is None:
+            print("queue complete")
+        else:
+            print(f"next pending: {pending.id}")
     return 0
 
 
@@ -132,7 +170,14 @@ def _build_scope(args: argparse.Namespace):
     return None
 
 
-def _continue(project_root: Path, session_id: str, *, list_queue: bool) -> int:
+def _continue(
+    project_root: Path,
+    session_id: str,
+    *,
+    list_queue: bool,
+    run_all: bool,
+    require_valid: bool,
+) -> int:
     try:
         session = continue_session(project_root, session_id)
     except GenerateError as error:
@@ -150,17 +195,54 @@ def _continue(project_root: Path, session_id: str, *, list_queue: bool) -> int:
             )
         return 0
 
-    pending = next_pending(session)
-    if pending is None:
-        print(f"session {session.session_id}: queue complete")
+    try:
+        if run_all:
+            results = run_all_pending(
+                project_root,
+                session_id,
+                require_valid=require_valid,
+            )
+            if not results:
+                print(f"session {session_id}: queue complete")
+                return 0
+            for result in results:
+                print(
+                    f"ran {result.job_id} [{result.status.value}] "
+                    f"{result.job_type.value} {result.block} -> {result.artifact}"
+                )
+                for err in result.errors:
+                    print(f"  error: {err}")
+                if result.status == JobStatus.FAILED:
+                    return 1
+            reloaded = load_session(project_root)
+            pending = next_pending(reloaded) if reloaded else None
+            if pending is None:
+                print(f"session {session_id}: queue complete")
+            return 0
+
+        result = run_next_job(
+            project_root,
+            session_id,
+            require_valid=require_valid,
+        )
+    except GenerateError as error:
+        print(f"{error.code}: {error.message}")
+        if error.suggestion:
+            print(f"suggestion: {error.suggestion}")
+        return 1
+
+    if result is None:
+        print(f"session {session_id}: queue complete")
         return 0
 
-    print(f"session {session.session_id}: next {pending.id}")
-    print(f"  type: {pending.type.value}")
-    print(f"  block: {pending.block}")
-    print(f"  artifact: {pending.artifact}")
-    print(f"  depends: {', '.join(pending.depends) if pending.depends else '-'}")
-    return 0
+    print(f"session {session_id}: ran {result.job_id}")
+    print(f"  status: {result.status.value}")
+    print(f"  type: {result.job_type.value}")
+    print(f"  block: {result.block}")
+    print(f"  artifact: {result.artifact}")
+    for err in result.errors:
+        print(f"  error: {err}")
+    return 0 if result.status == JobStatus.DONE else 1
 
 
 def _impact(project_root: Path, block_id: str, *, require_valid: bool) -> int:

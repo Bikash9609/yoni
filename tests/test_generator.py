@@ -1,4 +1,4 @@
-"""Generator scope, queue, session, and manifest tests."""
+"""Generator scope, queue, session, manifest, templates, and execution tests."""
 
 from __future__ import annotations
 
@@ -8,8 +8,10 @@ from pathlib import Path
 import pytest
 
 from yoni.generator.errors import GenerateError
+from yoni.generator.execute import execute_job, run_all_pending, run_next_job
 from yoni.generator.manifest import (
     checksum_text,
+    load_manifest,
     record_entry,
     save_manifest,
 )
@@ -24,6 +26,8 @@ from yoni.generator.session import (
     next_pending,
     save_session,
 )
+from yoni.generator.templates import render_entity, render_rule
+from yoni.generator.verify import extract_block_markers, verify_content
 from yoni.graph.builder import build_graph
 from yoni.normalizer.run import normalize_workspace
 from yoni.pipeline import compile_workspace
@@ -214,3 +218,117 @@ def test_generate_cli_integration(tmp_path: Path, capsys) -> None:
     assert "session gen_" in out
     assert "job_001" in out
     assert (dest / ".ai" / "generation" / "session.json").exists()
+
+
+def test_render_entity_customer() -> None:
+    norm, _ = _compiled()
+    block = norm.blocks["ENT_CUSTOMER_001"]
+    content = render_entity(block)
+    assert "# yoni:ENT_CUSTOMER_001" in content
+    assert "class Customer(BaseModel):" in content
+    assert "email: str" in content
+    assert "age: int" in content
+    assert verify_content(content, ["ENT_CUSTOMER_001"]) == []
+
+
+def test_render_rule_adult() -> None:
+    norm, _ = _compiled()
+    block = norm.blocks["RULE_ADULT_001"]
+    content = render_rule(block)
+    assert "# yoni:RULE_ADULT_001" in content
+    assert "def adult(age: int) -> bool:" in content
+    assert "return (age >= 18)" in content
+
+
+def test_execute_job_writes_file_and_manifest(tmp_path: Path) -> None:
+    import shutil
+
+    dest = tmp_path / "invoicing"
+    shutil.copytree(ROOT, dest, dirs_exist_ok=True)
+    session, _, _ = prepare_generation(dest, scope_from_intent("INT_REGISTER_USER_001"))
+    norm, _ = _compiled()
+    manifest = GenerationManifest()
+    job = session.queue[0]
+
+    result = execute_job(dest, session, job, norm, manifest)
+    assert result.status.value == "done"
+    assert (dest / result.artifact).exists()
+    assert "# yoni:ENT_CUSTOMER_001" in (dest / result.artifact).read_text(encoding="utf-8")
+    assert result.artifact in manifest.entries
+    reloaded = load_session(dest)
+    assert reloaded is not None
+    assert reloaded.queue[0].status.value == "done"
+
+
+def test_run_next_job(tmp_path: Path) -> None:
+    import shutil
+
+    dest = tmp_path / "invoicing"
+    shutil.copytree(ROOT, dest, dirs_exist_ok=True)
+    session, _, _ = prepare_generation(dest, scope_from_intent("INT_REGISTER_USER_001"))
+
+    result = run_next_job(dest, session.session_id)
+    assert result is not None
+    assert result.status.value == "done"
+    assert (dest / result.artifact).exists()
+
+
+def test_run_all_pending_completes_queue(tmp_path: Path) -> None:
+    import shutil
+
+    dest = tmp_path / "invoicing"
+    shutil.copytree(ROOT, dest, dirs_exist_ok=True)
+    session, _, _ = prepare_generation(dest, scope_from_intent("INT_REGISTER_USER_001"))
+
+    results = run_all_pending(dest, session.session_id)
+    assert len(results) == 6
+    assert all(result.status.value == "done" for result in results)
+
+    reloaded = load_session(dest)
+    assert reloaded is not None
+    assert next_pending(reloaded) is None
+
+    manifest = load_manifest(dest)
+    assert "generated/entities/customer.py" in manifest.entries
+    assert "generated/intents/register-user.py" in manifest.entries
+    intent_content = (dest / "generated/intents/register-user.py").read_text(encoding="utf-8")
+    assert "# yoni:INT_REGISTER_USER_001" in intent_content
+    assert "def register_user(" in intent_content
+
+
+def test_continue_cli_runs_one_job(tmp_path: Path, capsys) -> None:
+    import shutil
+
+    from yoni.generator.cli import main as generate_main
+
+    dest = tmp_path / "invoicing"
+    shutil.copytree(ROOT, dest, dirs_exist_ok=True)
+    session, _, _ = prepare_generation(dest, scope_from_intent("INT_REGISTER_USER_001"))
+
+    code = generate_main(["--root", str(dest), "--continue", session.session_id])
+    assert code == 0
+    out = capsys.readouterr().out
+    assert "ran job_001" in out
+    assert (dest / "generated/entities/customer.py").exists()
+
+
+def test_generate_run_flag_completes_queue(tmp_path: Path, capsys) -> None:
+    import shutil
+
+    from yoni.generator.cli import main as generate_main
+
+    dest = tmp_path / "invoicing"
+    shutil.copytree(ROOT, dest, dirs_exist_ok=True)
+
+    code = generate_main(
+        ["--root", str(dest), "--intent", "INT_REGISTER_USER_001", "--run"],
+    )
+    assert code == 0
+    out = capsys.readouterr().out
+    assert "queue complete" in out
+    assert (dest / "generated/intents/register-user.py").exists()
+
+
+def test_extract_block_markers() -> None:
+    content = "# yoni:ENT_CUSTOMER_001\nclass Customer:\n    pass\n"
+    assert extract_block_markers(content) == {"ENT_CUSTOMER_001"}
