@@ -10,7 +10,7 @@ from lark import Lark
 from lark.exceptions import LarkError
 
 from yoni.ast.base import ParseResult, YoniBlock
-from yoni.errors import syntax_error
+from yoni.errors import syntax_error, tab_in_indent
 from yoni.parser.indenter import YoniIndenter
 from yoni.parser.transformer import YoniTransformer
 
@@ -19,23 +19,26 @@ GRAMMAR_FILE = "yoni.lark"
 
 
 @lru_cache(maxsize=1)
-def build_parser() -> Lark:
+def build_parser() -> tuple[Lark, YoniIndenter]:
     """Load yoni.lark and return a reusable Lark parser with indentation support."""
     grammar_dir = resources.files(GRAMMAR_PACKAGE)
     grammar_text = grammar_dir.joinpath(GRAMMAR_FILE).read_text(encoding="utf-8")
-    return Lark(
+    indenter = YoniIndenter()
+    parser = Lark(
         grammar_text,
         start="start",
         parser="lalr",
-        postlex=YoniIndenter(),
+        postlex=indenter,
         propagate_positions=True,
         import_paths=[str(grammar_dir)],
     )
+    return parser, indenter
 
 
 def parse_source(source: str, *, file: str = "<stdin>") -> ParseResult[YoniBlock]:
     """Parse Yoni source text and return AST + diagnostics."""
-    parser = build_parser()
+    parser, indenter = build_parser()
+    indenter.tab_errors.clear()
     try:
         tree = parser.parse(source)
     except LarkError as exc:
@@ -46,9 +49,18 @@ def parse_source(source: str, *, file: str = "<stdin>") -> ParseResult[YoniBlock
             file=file,
         )
 
+    errors = []
+    for line_no, _ in indenter.tab_errors:
+        errors.append(tab_in_indent(file=file, line=line_no))
+
     transformer = YoniTransformer(file=file)
-    ast, errors = transformer.transform(tree)
-    return ParseResult(ast=ast, errors=errors, source=source, file=file)
+    ast, parse_errors = transformer.transform(tree)
+    return ParseResult(
+        ast=ast,
+        errors=errors + parse_errors,
+        source=source,
+        file=file,
+    )
 
 
 def parse_file(path: Path | str) -> ParseResult[YoniBlock]:

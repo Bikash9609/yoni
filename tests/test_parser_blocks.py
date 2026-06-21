@@ -58,7 +58,7 @@ def test_intent_process_ops() -> None:
     result = parse_file(FIXTURES / "intent_create_invoice.yoni")
     assert result.ok, result.errors
     assert isinstance(result.ast, IntentAST)
-    assert len(result.ast.process) == 3
+    assert len(result.ast.process) == 4
     assert result.ast.process[0].op == "new"
     assert result.ast.inputs[1].ref is not None
 

@@ -10,4 +10,4 @@ where:
 order_by:
   created_at desc
 limit: 100
-return: @Entity.Customer
+return: list[@Entity.Customer]

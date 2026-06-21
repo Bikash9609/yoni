@@ -4,20 +4,16 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 
+from yoni.ast.block_base import BlockBase
 from yoni.ast.expr import LayoutDef
-from yoni.ast.types import Reference, SourceSpan
+from yoni.ast.types import RefLink
 
 
-class ViewAST(BaseModel):
+class ViewAST(BlockBase):
     type: Literal["View"] = "View"
-    id: str
-    name: str
-    version: int = 1
-    desc: str = ""
-    query: Reference | None = None
+    query: RefLink | None = None
     fields: list[str] = Field(default_factory=list)
-    actions: list[Reference] = Field(default_factory=list)
+    actions: list[RefLink] = Field(default_factory=list)
     layout: LayoutDef | None = None
-    span: SourceSpan | None = None

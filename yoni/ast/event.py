@@ -4,16 +4,12 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 
-from yoni.ast.types import FieldDef, SourceSpan
+from yoni.ast.block_base import BlockBase
+from yoni.ast.types import FieldDef
 
 
-class EventAST(BaseModel):
+class EventAST(BlockBase):
     type: Literal["Event"] = "Event"
-    id: str
-    name: str
-    version: int = 1
-    desc: str = ""
     payload: list[FieldDef] = Field(default_factory=list)
-    span: SourceSpan | None = None

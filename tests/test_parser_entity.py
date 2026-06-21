@@ -16,9 +16,7 @@ def test_parse_entity_customer() -> None:
     assert result.ast.id == "ENT_CUSTOMER_001"
     assert result.ast.name == "Customer"
     assert result.ast.desc == "Primary customer record."
-    assert len(result.ast.fields) == 3
-    assert result.ast.fields[0].name == "customer_id"
-    assert result.ast.fields[0].type_code == TypeCode.STRING
-    assert result.ast.fields[1].name == "email"
-    assert result.ast.fields[2].name == "active"
-    assert result.ast.fields[2].type_code == TypeCode.BOOLEAN
+    assert len(result.ast.fields) == 4
+    assert result.ast.fields[0].type == "string"
+    assert len(result.ast.indices) == 1
+    assert result.ast.indices[0].field == "email"

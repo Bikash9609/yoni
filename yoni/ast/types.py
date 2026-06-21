@@ -40,6 +40,8 @@ class SourceSpan(BaseModel):
     file: str = ""
     start_line: int = 0
     end_line: int = 0
+    start_column: int = 0
+    end_column: int = 0
 
 
 class Reference(BaseModel):
@@ -47,6 +49,7 @@ class Reference(BaseModel):
 
     kind: str
     name: str
+    path: list[str] = Field(default_factory=list)
     raw: str = ""
 
     @classmethod
@@ -56,14 +59,32 @@ class Reference(BaseModel):
             msg = f"Invalid reference (missing @): {raw!r}"
             raise ValueError(msg)
         body = text[1:]
-        kind, _, name = body.partition(".")
-        return cls(kind=kind, name=name, raw=text)
+        parts = body.split(".")
+        kind = parts[0]
+        name = parts[1] if len(parts) > 1 else ""
+        path = parts[2:] if len(parts) > 2 else []
+        return cls(kind=kind, name=name, path=path, raw=text)
+
+
+class RefLink(BaseModel):
+    """Spec JSON wrapper for typed references: {"ref": "..."}."""
+
+    ref: Reference
+
+
+class RuntimeMetadata(BaseModel):
+    """Runtime constraints: SLA, criticality, owner (docs §9)."""
+
+    sla: str | None = None
+    criticality: str | None = None
+    owner: str | None = None
 
 
 class FieldDef(BaseModel):
     """Field declaration inside entity fields or intent input sections."""
 
     name: str
+    type: str | None = None
     type_code: TypeCode | None = None
     ref: Reference | None = None
     nullable: bool = False
@@ -72,6 +93,8 @@ class FieldDef(BaseModel):
 
     @property
     def type_name(self) -> str:
+        if self.type:
+            return self.type
         if self.type_code is not None:
             return self.type_code.full_name
         if self.ref is not None:

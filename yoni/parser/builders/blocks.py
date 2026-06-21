@@ -13,7 +13,7 @@ from yoni.ast.domain import DomainAST
 from yoni.ast.entity import EntityAST
 from yoni.ast.error import ErrorAST
 from yoni.ast.event import EventAST
-from yoni.ast.expr import WhenDef
+from yoni.ast.expr import WhenDef, WhenInput
 from yoni.ast.intent import IntentAST
 from yoni.ast.migration import MigrationAST
 from yoni.ast.project import ProjectAST
@@ -21,23 +21,27 @@ from yoni.ast.query import QueryAST
 from yoni.ast.rule import RuleAST
 from yoni.ast.state import StateAST
 from yoni.ast.test import TestAST
-from yoni.ast.types import FieldDef
+from yoni.ast.types import FieldDef, RuntimeMetadata
 from yoni.ast.view import ViewAST
 from yoni.ast.workflow import WorkflowAST
 from yoni.errors import ParseError, unknown_block_kind
 from yoni.parser.builders.base import (
     changes_from_section,
     check_intent_section_order,
+    check_mandatory_sections,
     env_from_section,
     expects_from_section,
     expr_from_section,
     fields_from_section,
     indices_from_section,
+    intent_return_from_scalar,
     layout_from_section,
     order_by_from_section,
     process_ops_from_section,
-    refs_from_section,
+    ref_link,
+    ref_links_from_section,
     require_id,
+    return_spec_from_lines,
     return_spec_from_scalar,
     scalar_bool,
     scalar_int,
@@ -55,6 +59,8 @@ def build_block(draft: BlockDraft) -> tuple[YoniBlock | None, list[ParseError]]:
     errors: list[ParseError] = list(draft.errors)
     if not require_id(draft, errors):
         return None, errors
+
+    check_mandatory_sections(draft, errors)
 
     builders = {
         BlockKind.PROJECT: _build_project,
@@ -87,11 +93,22 @@ def build_block(draft: BlockDraft) -> tuple[YoniBlock | None, list[ParseError]]:
 
 
 def _base_kwargs(draft: BlockDraft) -> dict[str, Any]:
+    metadata = None
+    sla = draft.scalars.get("sla")
+    criticality = draft.scalars.get("criticality")
+    owner = draft.scalars.get("owner")
+    if sla or criticality or owner:
+        metadata = RuntimeMetadata(
+            sla=str(sla) if sla else None,
+            criticality=str(criticality) if criticality else None,
+            owner=str(owner) if owner else None,
+        )
     return {
         "id": draft.block_id or "",
         "name": draft.name,
         "desc": draft.desc,
         "span": draft.span,
+        "metadata": metadata,
     }
 
 
@@ -100,8 +117,8 @@ def _build_project(
 ) -> tuple[ProjectAST | None, list[ParseError]]:
     return ProjectAST(
         **_base_kwargs(draft),
-        domains=refs_from_section(draft.sections.get("domains", [])),
-        capabilities=refs_from_section(draft.sections.get("capabilities", [])),
+        domains=ref_links_from_section(draft.sections.get("domains", [])),
+        capabilities=ref_links_from_section(draft.sections.get("capabilities", [])),
         env=env_from_section(draft.sections.get("env", [])),
     ), errors
 
@@ -111,9 +128,9 @@ def _build_domain(
 ) -> tuple[DomainAST | None, list[ParseError]]:
     return DomainAST(
         **_base_kwargs(draft),
-        entities=refs_from_section(draft.sections.get("entities", [])),
-        rules=refs_from_section(draft.sections.get("rules", [])),
-        events=refs_from_section(draft.sections.get("events", [])),
+        entities=ref_links_from_section(draft.sections.get("entities", [])),
+        rules=ref_links_from_section(draft.sections.get("rules", [])),
+        events=ref_links_from_section(draft.sections.get("events", [])),
     ), errors
 
 
@@ -150,17 +167,19 @@ def _build_intent(
     draft: BlockDraft, errors: list[ParseError]
 ) -> tuple[IntentAST | None, list[ParseError]]:
     check_intent_section_order(draft, errors)
-    return_ref = scalar_ref(draft, "return") or single_ref(
-        draft.sections.get("return", [])
-    )
+    return_spec = intent_return_from_scalar(draft.scalars.get("return"))
+    if return_spec is None:
+        ref = single_ref(draft.sections.get("return", []))
+        if ref:
+            return_spec = intent_return_from_scalar(ref)
     return IntentAST(
         **_base_kwargs(draft),
         inputs=fields_from_section(draft.sections.get("input", [])),
-        validations=refs_from_section(draft.sections.get("validate", [])),
+        validations=ref_links_from_section(draft.sections.get("validate", [])),
         process=process_ops_from_section(draft.sections.get("process", [])),
-        emit=refs_from_section(draft.sections.get("emit", [])),
-        fail=refs_from_section(draft.sections.get("fail", [])),
-        return_ref=return_ref,
+        emit=ref_links_from_section(draft.sections.get("emit", [])),
+        fail=ref_links_from_section(draft.sections.get("fail", [])),
+        return_spec=return_spec,
     ), errors
 
 
@@ -176,15 +195,15 @@ def _build_rule(
 def _build_query(
     draft: BlockDraft, errors: list[ParseError]
 ) -> tuple[QueryAST | None, list[ParseError]]:
-    entity = scalar_ref(draft, "entity") or single_ref(draft.sections.get("entity", []))
+    entity_ref = scalar_ref(draft, "entity") or single_ref(
+        draft.sections.get("entity", [])
+    )
     return_spec = return_spec_from_scalar(draft.scalars.get("return"))
     if return_spec is None:
-        ref = single_ref(draft.sections.get("return", []))
-        if ref:
-            return_spec = return_spec_from_scalar(ref)
+        return_spec = return_spec_from_lines(draft.sections.get("return", []))
     return QueryAST(
         **_base_kwargs(draft),
-        entity=entity,
+        entity=ref_link(entity_ref),
         where=expr_from_section(draft.sections.get("where", [])),
         order_by=order_by_from_section(draft.sections.get("order_by", [])),
         limit=scalar_int(draft, "limit"),
@@ -195,10 +214,10 @@ def _build_query(
 def _build_action(
     draft: BlockDraft, errors: list[ParseError]
 ) -> tuple[ActionAST | None, list[ParseError]]:
-    uses = scalar_ref(draft, "uses") or single_ref(draft.sections.get("uses", []))
+    uses_ref = scalar_ref(draft, "uses") or single_ref(draft.sections.get("uses", []))
     return ActionAST(
         **_base_kwargs(draft),
-        uses=uses,
+        uses=ref_link(uses_ref),
         inputs=fields_from_section(draft.sections.get("input", [])),
         result=fields_from_section(draft.sections.get("result", [])),
     ), errors
@@ -207,9 +226,14 @@ def _build_action(
 def _build_constraint(
     draft: BlockDraft, errors: list[ParseError]
 ) -> tuple[ConstraintAST | None, list[ParseError]]:
-    entity = scalar_ref(draft, "entity") or single_ref(draft.sections.get("entity", []))
-    check = expr_from_section(draft.sections.get("check", []))
-    return ConstraintAST(**_base_kwargs(draft), entity=entity, check=check), errors
+    entity_ref = scalar_ref(draft, "entity") or single_ref(
+        draft.sections.get("entity", [])
+    )
+    return ConstraintAST(
+        **_base_kwargs(draft),
+        entity=ref_link(entity_ref),
+        check=expr_from_section(draft.sections.get("check", [])),
+    ), errors
 
 
 def _build_workflow(
@@ -250,7 +274,7 @@ def _build_test(
                 when.intent = line.intent
             elif isinstance(line, tuple) and len(line) == 2:
                 key, value = line
-                when.inputs[str(key)] = value
+                when.inputs.append(WhenInput(name=str(key), value=value))
     return TestAST(
         **_base_kwargs(draft),
         given=process_ops_from_section(draft.sections.get("given", [])),
@@ -264,7 +288,7 @@ def _build_capability(
 ) -> tuple[CapabilityAST | None, list[ParseError]]:
     return CapabilityAST(
         **_base_kwargs(draft),
-        actions=refs_from_section(draft.sections.get("actions", [])),
+        actions=ref_links_from_section(draft.sections.get("actions", [])),
         config=fields_from_section(draft.sections.get("config", [])),
     ), errors
 
@@ -272,7 +296,9 @@ def _build_capability(
 def _build_view(
     draft: BlockDraft, errors: list[ParseError]
 ) -> tuple[ViewAST | None, list[ParseError]]:
-    query = scalar_ref(draft, "query") or single_ref(draft.sections.get("query", []))
+    query_ref = scalar_ref(draft, "query") or single_ref(
+        draft.sections.get("query", [])
+    )
     field_lines = draft.sections.get("fields", [])
     fields: list[str] = []
     for line in field_lines:
@@ -284,9 +310,9 @@ def _build_view(
             fields.append(str(line[0]))
     return ViewAST(
         **_base_kwargs(draft),
-        query=query,
-        fields=fields or string_list_from_section(field_lines),
-        actions=refs_from_section(draft.sections.get("actions", [])),
+        query=ref_link(query_ref),
+        fields=fields,
+        actions=ref_links_from_section(draft.sections.get("actions", [])),
         layout=layout_from_section(draft.sections.get("layout", [])),
     ), errors
 
@@ -304,7 +330,7 @@ def _build_deployment(
         region=scalar_str(draft, "region"),
         replicas=scalar_int(draft, "replicas"),
         resources=resources,
-        services=refs_from_section(draft.sections.get("services", [])),
+        services=ref_links_from_section(draft.sections.get("services", [])),
         env=env_from_section(draft.sections.get("env", [])),
     ), errors
 
@@ -317,6 +343,6 @@ def _build_migration(
         from_version=scalar_int(draft, "from_version"),
         to_version=scalar_int(draft, "to_version"),
         changes=changes_from_section(draft.sections.get("changes", [])),
-        affects=refs_from_section(draft.sections.get("affects", [])),
+        affects=ref_links_from_section(draft.sections.get("affects", [])),
         breaking=scalar_bool(draft, "breaking"),
     ), errors

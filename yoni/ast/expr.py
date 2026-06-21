@@ -25,6 +25,12 @@ class ExprRef(BaseModel):
     ref: Reference
 
 
+class ExprCall(BaseModel):
+    kind: Literal["call"] = "call"
+    op: str
+    args: list[ExprNode] = Field(default_factory=list)
+
+
 class ExprBinary(BaseModel):
     kind: Literal["binary"] = "binary"
     op: str
@@ -33,7 +39,7 @@ class ExprBinary(BaseModel):
 
 
 ExprNode = Annotated[
-    Union[ExprVar, ExprValue, ExprRef, ExprBinary],
+    Union[ExprVar, ExprValue, ExprRef, ExprCall, ExprBinary],
     Field(discriminator="kind"),
 ]
 
@@ -48,7 +54,7 @@ class ProcessOp(BaseModel):
 class ExpectOp(BaseModel):
     op: str
     left: str | None = None
-    right: str | Reference | None = None
+    right: str | Reference | ExprNode | None = None
     event: Reference | None = None
 
 
@@ -62,14 +68,32 @@ class TransitionDef(BaseModel):
     to_state: str
 
 
+class StepInputValue(BaseModel):
+    step: str | None = None
+    field: str | None = None
+    ref: Reference | None = None
+    literal: str | int | float | bool | None = None
+
+
+class StepInput(BaseModel):
+    name: str
+    value: StepInputValue | Reference | str | int | float | bool
+
+
 class StepDef(BaseModel):
     name: str
     intent: Reference
+    inputs: list[StepInput] = Field(default_factory=list)
+
+
+class WhenInput(BaseModel):
+    name: str
+    value: Reference | str | int | float | bool | ExprNode
 
 
 class WhenDef(BaseModel):
     intent: Reference | None = None
-    inputs: dict[str, Any] = Field(default_factory=dict)
+    inputs: list[WhenInput] = Field(default_factory=list)
 
 
 class EnvDef(BaseModel):
@@ -80,9 +104,20 @@ class LayoutDef(BaseModel):
     entries: dict[str, str | int | bool] = Field(default_factory=dict)
 
 
+class MigrationField(BaseModel):
+    name: str
+    type: str | None = None
+    type_code: str | None = None
+    nullable: bool = False
+
+
 class ChangeDef(BaseModel):
     change_type: str
     entity: Reference | None = None
-    field_name: str | None = None
-    type_code: str | None = None
-    nullable: bool = False
+    field: MigrationField | None = None
+    old_name: str | None = None
+    new_name: str | None = None
+    old_ref: Reference | None = None
+    new_ref: Reference | None = None
+    from_state: str | None = None
+    to_state: str | None = None

@@ -1,25 +1,18 @@
-"""EntityAST — strongly-typed AST for entity blocks.
-
-Schema: docs/03-final-yoni-specs.md § EntityAST
-"""
+"""EntityAST — strongly-typed AST for entity blocks."""
 
 from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import Field
 
-from yoni.ast.types import FieldDef, IndexDef, SourceSpan
+from yoni.ast.block_base import BlockBase
+from yoni.ast.types import FieldDef, IndexDef
 
 
-class EntityAST(BaseModel):
+class EntityAST(BlockBase):
     """AST node for `entity` blocks."""
 
     type: Literal["Entity"] = "Entity"
-    id: str
-    name: str
-    version: int = 1
-    desc: str = ""
-    fields: list[FieldDef] = []
-    indices: list[IndexDef] = []
-    span: SourceSpan | None = None
+    fields: list[FieldDef] = Field(default_factory=list)
+    indices: list[IndexDef] = Field(default_factory=list)

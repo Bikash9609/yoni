@@ -8,4 +8,5 @@ fields:
   customer_id: s
   email: s
   age: i
-  active: b
+  active: b 
+

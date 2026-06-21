@@ -15,5 +15,9 @@ def test_parse_intent_create_invoice() -> None:
     assert result.ast.id == "INT_CREATE_INV_001"
     assert result.ast.name == "CreateInvoice"
     assert len(result.ast.inputs) == 2
-    assert len(result.ast.process) == 3
-    assert result.ast.return_ref is not None
+    assert len(result.ast.process) == 4
+    assert result.ast.return_spec is not None
+    assert result.ast.return_spec.type == "Entity"
+    assert len(result.ast.validations) == 1
+    assert result.ast.metadata is not None
+    assert result.ast.metadata.sla == "500ms"

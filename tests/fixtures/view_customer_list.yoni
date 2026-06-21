@@ -8,6 +8,7 @@ query: @Query.ActiveCustomers
 fields:
   customer_id
   email
+  active
 actions:
   @Intent.EditCustomer
 layout:

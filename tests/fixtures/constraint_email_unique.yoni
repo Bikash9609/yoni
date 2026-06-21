@@ -6,4 +6,4 @@ desc:
 
 entity: @Entity.Customer
 check:
-  email == email
+  count(email) == 1

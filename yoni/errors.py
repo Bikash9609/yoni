@@ -1,8 +1,4 @@
-"""Parse-time diagnostics for the Yoni compiler.
-
-Diagnostics target stable block IDs, not line numbers (docs/01-yoni-language-spec.md).
-Parse errors use the YONI1000 range.
-"""
+"""Parse-time diagnostics for the Yoni compiler."""
 
 from __future__ import annotations
 
@@ -21,6 +17,7 @@ class ParseError(BaseModel):
     block_id: str | None = None
     suggestion: str | None = None
     line: int | None = None
+    column: int | None = None
 
 
 def syntax_error(
@@ -28,6 +25,7 @@ def syntax_error(
     *,
     file: str = "",
     line: int | None = None,
+    column: int | None = None,
     block_id: str | None = None,
 ) -> ParseError:
     """YONI1001 — Lark could not parse the source."""
@@ -36,23 +34,8 @@ def syntax_error(
         message=message,
         file=file,
         line=line,
+        column=column,
         block_id=block_id,
-    )
-
-
-def unimplemented_block(
-    kind: str,
-    *,
-    file: str = "",
-    block_id: str | None = None,
-) -> ParseError:
-    """YONI1002 — Block kind recognized but transformer not yet implemented."""
-    return ParseError(
-        code="YONI1002",
-        message=f"Block kind '{kind}' is recognized but not yet implemented.",
-        file=file,
-        block_id=block_id,
-        suggestion="Implement transformer for this block kind.",
     )
 
 
@@ -72,6 +55,38 @@ def missing_required_field(
     )
 
 
+def unknown_section(
+    section: str,
+    kind: str,
+    *,
+    file: str = "",
+    block_id: str | None = None,
+) -> ParseError:
+    """YONI1005 — Section not allowed for this block kind."""
+    return ParseError(
+        code="YONI1005",
+        message=f"Section '{section}' is not allowed in {kind} blocks.",
+        file=file,
+        block_id=block_id,
+    )
+
+
+def missing_mandatory_section(
+    section: str,
+    *,
+    file: str = "",
+    block_id: str | None = None,
+) -> ParseError:
+    """YONI1006 — Required section missing."""
+    return ParseError(
+        code="YONI1006",
+        message=f"Missing mandatory section: {section}",
+        file=file,
+        block_id=block_id,
+        suggestion=f"Add '{section}:' section to the block.",
+    )
+
+
 def section_order_violation(
     expected: str,
     found: str,
@@ -86,6 +101,37 @@ def section_order_violation(
         file=file,
         block_id=block_id,
         suggestion=f"Move '{found}:' below '{expected}:'.",
+    )
+
+
+def tab_in_indent(
+    *,
+    file: str = "",
+    line: int | None = None,
+    block_id: str | None = None,
+) -> ParseError:
+    """YONI1008 — Tab character used for indentation."""
+    return ParseError(
+        code="YONI1008",
+        message="Tabs are not allowed for indentation; use 2 spaces.",
+        file=file,
+        line=line,
+        block_id=block_id,
+    )
+
+
+def duplicate_section(
+    section: str,
+    *,
+    file: str = "",
+    block_id: str | None = None,
+) -> ParseError:
+    """YONI1009 — Duplicate section header."""
+    return ParseError(
+        code="YONI1009",
+        message=f"Duplicate section: {section}",
+        file=file,
+        block_id=block_id,
     )
 
 

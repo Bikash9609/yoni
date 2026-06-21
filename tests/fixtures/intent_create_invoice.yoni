@@ -4,6 +4,10 @@ id: INT_CREATE_INV_001
 desc:
   Creates invoice for an approved order.
 
+sla: 500ms
+criticality: high
+owner: billing-team
+
 input:
   order_id: s
   customer: @Entity.Customer
@@ -14,6 +18,7 @@ validate:
 process:
   new invoice @Entity.Invoice
   set invoice.customer_id customer.customer_id
+  set invoice.status "STS_INVOICE_001.Draft"
   save invoice
 
 emit:

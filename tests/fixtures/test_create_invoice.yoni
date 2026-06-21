@@ -7,9 +7,12 @@ desc:
 given:
   new customer @Entity.Customer
   set customer.email "test@example.com"
+  set customer.active true
 when:
   intent @Intent.CreateInvoice
   order_id ORD_001
+  customer customer
 expect:
   eq return.customer_id customer.customer_id
+  eq return.status "STS_INVOICE_001.Draft"
   emitted @Event.InvoiceCreated

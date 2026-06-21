@@ -4,13 +4,14 @@ from __future__ import annotations
 
 from typing import Any
 
-from lark import Token
+from lark import Token, Tree
 
 from yoni.ast.expr import (
     ChangeDef,
     EnvDef,
     ExpectOp,
     ExprBinary,
+    ExprCall,
     ExprNode,
     ExprRef,
     ExprValue,
@@ -19,20 +20,38 @@ from yoni.ast.expr import (
     OrderByDef,
     ProcessOp,
     StepDef,
+    StepInput,
+    StepInputValue,
     TransitionDef,
+    WhenDef,
+    WhenInput,
 )
-from yoni.ast.query import QueryReturn
-from yoni.ast.types import FieldDef, IndexDef, Reference, TYPE_CODE_MAP, TypeCode
-from yoni.errors import ParseError, section_order_violation
+from yoni.ast.query import IntentReturn, QueryReturn
+from yoni.ast.types import FieldDef, IndexDef, RefLink, Reference, TYPE_CODE_MAP, TypeCode
+from yoni.errors import (
+    ParseError,
+    missing_mandatory_section,
+    section_order_violation,
+)
 from yoni.parser.draft import BlockDraft
+from yoni.parser.sections import ALLOWED_SECTIONS, MANDATORY_SECTIONS
 
 INTENT_SECTION_ORDER = ("input", "validate", "process", "emit", "fail", "return")
 
 
 def require_id(draft: BlockDraft, errors: list[ParseError]) -> bool:
-    if draft.block_id:
-        return True
-    return False
+    return bool(draft.block_id)
+
+
+def check_mandatory_sections(draft: BlockDraft, errors: list[ParseError]) -> None:
+    required = MANDATORY_SECTIONS.get(draft.kind, frozenset())
+    for section in required:
+        if section not in draft.sections:
+            errors.append(
+                missing_mandatory_section(
+                    section, file=draft.file, block_id=draft.block_id
+                )
+            )
 
 
 def check_intent_section_order(draft: BlockDraft, errors: list[ParseError]) -> None:
@@ -54,6 +73,14 @@ def check_intent_section_order(draft: BlockDraft, errors: list[ParseError]) -> N
             break
 
 
+def ref_link(ref: Reference | None) -> RefLink | None:
+    return RefLink(ref=ref) if ref else None
+
+
+def ref_links_from_section(lines: list[Any]) -> list[RefLink]:
+    return [RefLink(ref=r) for r in refs_from_section(lines)]
+
+
 def fields_from_section(lines: list[Any]) -> list[FieldDef]:
     result: list[FieldDef] = []
     for line in lines:
@@ -71,6 +98,8 @@ def refs_from_section(lines: list[Any]) -> list[Reference]:
     for line in lines:
         if isinstance(line, Reference):
             refs.append(line)
+        elif isinstance(line, RefLink):
+            refs.append(line.ref)
         elif isinstance(line, FieldDef) and line.ref:
             refs.append(line.ref)
     return refs
@@ -87,17 +116,21 @@ def process_ops_from_section(lines: list[Any]) -> list[ProcessOp]:
 
 def expr_from_section(lines: list[Any]) -> ExprNode | None:
     for line in lines:
-        if isinstance(line, (ExprBinary, ExprVar, ExprValue, ExprRef)):
+        if isinstance(line, (ExprBinary, ExprVar, ExprValue, ExprRef, ExprCall)):
             return line
     return None
 
 
-def indices_from_section(lines: list[Any]) -> list[IndexDef]:
-    result: list[IndexDef] = []
+def return_spec_from_lines(lines: list[Any]) -> QueryReturn | None:
     for line in lines:
-        if isinstance(line, IndexDef):
-            result.append(line)
-    return result
+        spec = return_spec_from_scalar(line)
+        if spec:
+            return spec
+    return None
+
+
+def indices_from_section(lines: list[Any]) -> list[IndexDef]:
+    return [line for line in lines if isinstance(line, IndexDef)]
 
 
 def transitions_from_section(lines: list[Any]) -> list[TransitionDef]:
@@ -140,11 +173,7 @@ def layout_from_section(lines: list[Any]) -> LayoutDef | None:
 
 
 def string_list_from_section(lines: list[Any]) -> list[str]:
-    result: list[str] = []
-    for line in lines:
-        if isinstance(line, str):
-            result.append(line)
-    return result
+    return [line for line in lines if isinstance(line, str)]
 
 
 def scalar_str(draft: BlockDraft, key: str, default: str = "") -> str:
@@ -167,6 +196,8 @@ def scalar_bool(draft: BlockDraft, key: str) -> bool:
     value = draft.scalars.get(key)
     if value is None:
         return False
+    if isinstance(value, bool):
+        return value
     if isinstance(value, Token):
         return str(value).lower() == "true"
     return bool(value)
@@ -185,15 +216,24 @@ def return_spec_from_scalar(value: Any) -> QueryReturn | None:
     return None
 
 
+def intent_return_from_scalar(value: Any) -> IntentReturn | None:
+    if isinstance(value, Reference):
+        return IntentReturn(type="Entity", ref=value)
+    if isinstance(value, IntentReturn):
+        return value
+    return None
+
+
 def token_str(value: Any) -> str:
     if isinstance(value, Token):
         return str(value)
     return str(value)
 
 
-def parse_type_code(value: Any) -> TypeCode | None:
-    text = token_str(value)
-    return TYPE_CODE_MAP.get(text)
+def strip_quotes(text: str) -> str:
+    if len(text) >= 2 and text[0] == '"' and text[-1] == '"':
+        return text[1:-1]
+    return text
 
 
 def field_from_parts(
@@ -208,12 +248,15 @@ def field_from_parts(
     )
     if isinstance(type_value, Reference):
         field.ref = type_value
+        field.type = type_value.kind
     elif isinstance(type_value, TypeCode):
         field.type_code = type_value
+        field.type = type_value.full_name
     else:
         code = TYPE_CODE_MAP.get(token_str(type_value))
         if code:
             field.type_code = code
+            field.type = code.full_name
     return field
 
 
@@ -222,10 +265,14 @@ def make_binary(op: str, left: Any, right: Any) -> ExprBinary:
 
 
 def _as_expr(node: Any) -> ExprNode:
-    if isinstance(node, (ExprBinary, ExprVar, ExprValue, ExprRef)):
+    if isinstance(node, (ExprBinary, ExprVar, ExprValue, ExprRef, ExprCall)):
         return node
     if isinstance(node, Reference):
         return ExprRef(ref=node)
+    if isinstance(node, Tree):
+        if node.children:
+            return _as_expr(node.children[0])
+        return ExprVar(name=str(node))
     if isinstance(node, Token):
         text = str(node)
         if text in ("true", "false"):
@@ -238,8 +285,6 @@ def _as_expr(node: Any) -> ExprNode:
             return ExprValue(value=text[1:-1], type="string")
         if text.startswith("@"):
             return ExprRef(ref=Reference.parse(text))
-        if "." in text:
-            return ExprVar(name=text)
         return ExprVar(name=text)
     if isinstance(node, str):
         if node.startswith("@"):
@@ -253,11 +298,48 @@ def _as_expr(node: Any) -> ExprNode:
 def process_value_as_ast(value: Any) -> str | Reference | ExprNode:
     if isinstance(value, Reference):
         return value
-    if isinstance(value, (ExprBinary, ExprVar, ExprValue, ExprRef)):
+    if isinstance(value, (ExprBinary, ExprVar, ExprValue, ExprRef, ExprCall)):
         return value
+    if isinstance(value, Tree):
+        if value.children:
+            return process_value_as_ast(value.children[0])
+        return str(value)
+    if isinstance(value, Token):
+        if value.type == "STRING":
+            return strip_quotes(str(value))
+        if value.type == "ID":
+            return str(value)
+    text = token_str(value)
+    if text.startswith('"') and text.endswith('"'):
+        return strip_quotes(text)
+    if text.startswith("@"):
+        return Reference.parse(text)
+    if text[0].isupper() or (text and text[0].isalpha() and "." in text):
+        return ExprVar(name=text)
+    if "." in text and text[0].islower():
+        return ExprVar(name=text)
+    if text in ("true", "false"):
+        return ExprValue(value=text == "true", type="boolean")
+    if text.isdigit():
+        return ExprValue(value=int(text), type="integer")
+    return text
+
+
+def parse_step_input_value(value: Any) -> StepInputValue | Reference | str | int | float | bool:
+    if isinstance(value, Reference):
+        return value
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float):
+        return value
+    if isinstance(value, ExprNode):
+        return str(value)
     text = token_str(value)
     if text.startswith("@"):
         return Reference.parse(text)
-    if "." in text and text[0].islower():
-        return ExprVar(name=text)
+    if "." in text:
+        parts = text.split(".", 1)
+        return StepInputValue(step=parts[0], field=parts[1])
     return text

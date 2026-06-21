@@ -8,3 +8,7 @@ fields:
   customer_id: s
   email: s
   active: b
+  api_key: s
+
+indices:
+  email: unique

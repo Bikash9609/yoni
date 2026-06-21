@@ -11,24 +11,32 @@ from yoni.ast.expr import (
     ChangeDef,
     ExpectOp,
     ExprBinary,
+    ExprCall,
     ExprRef,
     ExprValue,
     ExprVar,
+    MigrationField,
+    OrderByDef,
     ProcessOp,
     StepDef,
+    StepInput,
     TransitionDef,
     WhenDef,
 )
 from yoni.ast.query import QueryReturn
 from yoni.ast.types import FieldDef, IndexDef, Reference, TYPE_CODE_MAP, TypeCode
-from yoni.errors import ParseError, missing_required_field
+from yoni.errors import ParseError, missing_required_field, unknown_section, duplicate_section
 from yoni.parser.builders import build_block
 from yoni.parser.builders.base import (
     field_from_parts,
     make_binary,
+    parse_step_input_value,
     process_value_as_ast,
+    strip_quotes,
 )
 from yoni.parser.draft import BlockDraft
+from yoni.parser.sections import ALLOWED_SECTIONS
+from yoni.ast.types import SourceSpan
 
 
 class YoniTransformer(Transformer):
@@ -41,15 +49,21 @@ class YoniTransformer(Transformer):
     def start(self, items: list[Any]) -> tuple[YoniBlock | None, list[ParseError]]:
         return items[0]
 
-    def block(self, items: list[Any]) -> tuple[YoniBlock | None, list[ParseError]]:
+    @v_args(meta=True)
+    def block(self, meta: Any, items: list[Any]) -> tuple[YoniBlock | None, list[ParseError]]:
         header: tuple[BlockKind, str] = items[0]
         body_items: list[Any] = items[1] if len(items) > 1 else []
         kind, name = header
         draft = BlockDraft(kind=kind, name=name, file=self.file)
+        draft.span = _span(meta, self.file)
         self._collect_body(draft, body_items)
         if not draft.block_id:
             draft.errors.append(
                 missing_required_field("id", file=draft.file, block_id=draft.block_id)
+            )
+        if not draft.desc.strip():
+            draft.errors.append(
+                missing_required_field("desc", file=draft.file, block_id=draft.block_id)
             )
         return build_block(draft)
 
@@ -92,9 +106,6 @@ class YoniTransformer(Transformer):
     def top_region(self, items: list[Any]) -> dict[str, Any]:
         return {"scalar": "region", "value": str(items[0])}
 
-    def SCALAR_TEXT(self, token: Token) -> str:
-        return str(token)
-
     def top_replicas(self, items: list[Any]) -> dict[str, Any]:
         return {"scalar": "replicas", "value": items[0]}
 
@@ -112,6 +123,28 @@ class YoniTransformer(Transformer):
 
     def top_message(self, items: list[Any]) -> dict[str, Any]:
         return {"scalar": "message", "value": str(items[0])}
+
+    def top_sla(self, items: list[Any]) -> dict[str, Any]:
+        return {"scalar": "sla", "value": str(items[0])}
+
+    def top_criticality(self, items: list[Any]) -> dict[str, Any]:
+        return {"scalar": "criticality", "value": str(items[0])}
+
+    def top_owner(self, items: list[Any]) -> dict[str, Any]:
+        return {"scalar": "owner", "value": str(items[0])}
+
+    def return_section(self, items: list[Any]) -> dict[str, Any]:
+        spec = items[0] if items else None
+        return {"scalar": "return", "value": spec}
+
+    def return_section_body(self, items: list[Any]) -> Any:
+        return items[0] if items else None
+
+    def SCALAR_TEXT(self, token: Token) -> str:
+        return str(token)
+
+    def DURATION(self, token: Token) -> str:
+        return str(token)
 
     def desc_body(self, items: list[Any]) -> str:
         lines: list[str] = []
@@ -154,11 +187,20 @@ class YoniTransformer(Transformer):
     def index_line(self, items: list[Any]) -> IndexDef:
         return IndexDef(field=str(items[0]), type=str(items[1]).lower())
 
+    def name_line(self, items: list[Any]) -> str:
+        return str(items[0])
+
+    def order_by_line(self, items: list[Any]) -> OrderByDef:
+        return OrderByDef(field=str(items[0]), direction=str(items[1]).lower())
+
     def ref_line(self, items: list[Any]) -> Reference:
         return items[0]
 
     def process_value(self, items: list[Any]) -> Any:
-        return process_value_as_ast(items[0])
+        value = items[0]
+        if isinstance(value, Token) and value.type == "STRING":
+            return strip_quotes(str(value))
+        return process_value_as_ast(value)
 
     def process_new(self, items: list[Any]) -> ProcessOp:
         type_ref = items[-1]
@@ -170,11 +212,7 @@ class YoniTransformer(Transformer):
         value = items[-1]
         if isinstance(value, Token):
             value = process_value_as_ast(value)
-        return ProcessOp(
-            op="set",
-            target=str(items[-2]),
-            value=value,
-        )
+        return ProcessOp(op="set", target=str(items[-2]), value=value)
 
     def process_save(self, items: list[Any]) -> ProcessOp:
         return ProcessOp(op="save", target=str(items[-1]))
@@ -185,7 +223,7 @@ class YoniTransformer(Transformer):
     def transition_line(self, items: list[Any]) -> TransitionDef:
         return TransitionDef(from_state=str(items[0]), to_state=str(items[-1]))
 
-    def step_line(self, items: list[Any]) -> StepDef:
+    def step_line_simple(self, items: list[Any]) -> StepDef:
         return StepDef(name=str(items[0]), intent=items[1])
 
     def kv_line(self, items: list[Any]) -> tuple[str, Any]:
@@ -199,7 +237,13 @@ class YoniTransformer(Transformer):
                 return int(text)
             if text in ("true", "false"):
                 return text == "true"
-            return text
+            return strip_quotes(text)
+        if isinstance(value, str) and value.isdigit():
+            return int(value)
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str) and value.startswith('"') and value.endswith('"'):
+            return strip_quotes(value)
         return value
 
     def expect_eq(self, items: list[Any]) -> ExpectOp:
@@ -215,6 +259,9 @@ class YoniTransformer(Transformer):
             event = Reference.parse(str(event))
         return ExpectOp(op="emitted", event=event)
 
+    def expect_value(self, items: list[Any]) -> Any:
+        return process_value_as_ast(items[0])
+
     def expr_line(self, items: list[Any]) -> Any:
         return items[0]
 
@@ -225,23 +272,81 @@ class YoniTransformer(Transformer):
         return WhenDef(intent=intent)
 
     def when_input(self, items: list[Any]) -> tuple[str, Any]:
-        return str(items[0]), items[1]
+        value = items[1]
+        if isinstance(value, Token) and value.type == "ID":
+            value = str(value)
+        elif not isinstance(value, (str, Reference, ExprBinary, ExprVar, ExprValue, ExprRef, ExprCall)):
+            value = process_value_as_ast(value)
+        return str(items[0]), value
 
-    def change_line(self, items: list[Any]) -> ChangeDef:
-        entity = items[0]
-        field_name = str(items[1])
-        type_code = str(items[2])
-        modifiers = {str(m).lower() for m in items[3:]} if len(items) > 3 else set()
+    def when_value(self, items: list[Any]) -> Any:
+        value = items[0]
+        if isinstance(value, Token) and value.type in ("ID", "STRING"):
+            text = str(value)
+            return strip_quotes(text) if value.type == "STRING" else text
+        return process_value_as_ast(value)
+
+    def change_add_field(self, items: list[Any]) -> ChangeDef:
+        filtered = _filter_change_items(items)
+        entity = filtered[0]
+        field_name = str(filtered[1])
+        type_code_val = filtered[2]
+        tc = type_code_val.value if isinstance(type_code_val, TypeCode) else str(type_code_val)
+        modifiers = {str(m).lower() for m in filtered[3:]} if len(filtered) > 3 else set()
         return ChangeDef(
             change_type="AddField",
             entity=entity,
-            field_name=field_name,
-            type_code=type_code,
-            nullable="nullable" in modifiers,
+            field=MigrationField(
+                name=field_name,
+                type_code=tc,
+                type=TYPE_CODE_MAP[tc].full_name if tc in TYPE_CODE_MAP else None,
+                nullable="nullable" in modifiers,
+            ),
         )
 
-    def layout_line(self, items: list[Any]) -> tuple[str, Any]:
-        return str(items[0]), items[1]
+    def change_remove_field(self, items: list[Any]) -> ChangeDef:
+        filtered = _filter_change_items(items)
+        return ChangeDef(
+            change_type="RemoveField",
+            entity=filtered[0],
+            field=MigrationField(name=str(filtered[1])),
+        )
+
+    def change_rename_field(self, items: list[Any]) -> ChangeDef:
+        filtered = _filter_change_items(items)
+        return ChangeDef(
+            change_type="RenameField",
+            entity=filtered[0],
+            old_name=str(filtered[1]),
+            new_name=str(filtered[2]),
+        )
+
+    def change_replace_ref(self, items: list[Any]) -> ChangeDef:
+        filtered = _filter_change_items(items)
+        return ChangeDef(
+            change_type="ReplaceReference",
+            old_ref=filtered[0],
+            new_ref=filtered[1],
+        )
+
+    def change_create_trans(self, items: list[Any]) -> ChangeDef:
+        filtered = _filter_change_items(items)
+        return ChangeDef(
+            change_type="CreateTransition",
+            from_state=str(filtered[0]),
+            to_state=str(filtered[1]),
+        )
+
+    def change_remove_trans(self, items: list[Any]) -> ChangeDef:
+        filtered = _filter_change_items(items)
+        return ChangeDef(
+            change_type="RemoveTransition",
+            from_state=str(filtered[0]),
+            to_state=str(filtered[1]),
+        )
+
+    def return_spec_line(self, items: list[Any]) -> QueryReturn | Reference:
+        return items[0]
 
     def type_spec(self, items: list[Any]) -> TypeCode | Reference:
         value = items[0]
@@ -257,7 +362,8 @@ class YoniTransformer(Transformer):
     def return_spec(self, items: list[Any]) -> Reference | QueryReturn:
         if len(items) == 1:
             return items[0]
-        return QueryReturn(type="list", inner=items[1])
+        inner = next((i for i in items if isinstance(i, Reference)), None)
+        return QueryReturn(type="list", inner=inner)
 
     @v_args(inline=True)
     def TYPE_CODE(self, token: Token) -> TypeCode:
@@ -267,41 +373,46 @@ class YoniTransformer(Transformer):
     def REFERENCE(self, token: Token) -> Reference:
         return Reference.parse(str(token))
 
-    def content_line(self, items: list[Any]) -> str:
-        text = str(items[0]).strip()
-        if text.startswith("@"):
-            return Reference.parse(text)
-        return text
-
     def eq_expr(self, items: list[Any]) -> ExprBinary:
-        return make_binary("==", items[0], items[1])
+        return make_binary("==", items[0], items[-1])
 
     def ne_expr(self, items: list[Any]) -> ExprBinary:
-        return make_binary("!=", items[0], items[1])
+        return make_binary("!=", items[0], items[-1])
 
     def ge_expr(self, items: list[Any]) -> ExprBinary:
-        return make_binary(">=", items[0], items[1])
+        return make_binary(">=", items[0], items[-1])
 
     def le_expr(self, items: list[Any]) -> ExprBinary:
-        return make_binary("<=", items[0], items[1])
+        return make_binary("<=", items[0], items[-1])
 
     def gt_expr(self, items: list[Any]) -> ExprBinary:
-        return make_binary(">", items[0], items[1])
+        return make_binary(">", items[0], items[-1])
 
     def lt_expr(self, items: list[Any]) -> ExprBinary:
-        return make_binary("<", items[0], items[1])
+        return make_binary("<", items[0], items[-1])
 
     def add_expr(self, items: list[Any]) -> ExprBinary:
-        return make_binary("+", items[0], items[1])
+        return make_binary("+", items[0], items[-1])
 
     def sub_expr(self, items: list[Any]) -> ExprBinary:
-        return make_binary("-", items[0], items[1])
+        return make_binary("-", items[0], items[-1])
 
     def mul_expr(self, items: list[Any]) -> ExprBinary:
-        return make_binary("*", items[0], items[1])
+        return make_binary("*", items[0], items[-1])
 
     def div_expr(self, items: list[Any]) -> ExprBinary:
-        return make_binary("/", items[0], items[1])
+        return make_binary("/", items[0], items[-1])
+
+    def factor(self, items: list[Any]) -> Any:
+        return items[0]
+
+    def paren_factor(self, items: list[Any]) -> Any:
+        return items[0]
+
+    def call_expr(self, items: list[Any]) -> ExprCall:
+        op = str(items[0])
+        args = list(items[1:])
+        return ExprCall(op=op, args=[_as_expr_node(a) for a in args])
 
     def number_atom(self, items: list[Any]) -> ExprValue:
         text = str(items[0])
@@ -325,10 +436,9 @@ class YoniTransformer(Transformer):
     def enum_atom(self, items: list[Any]) -> ExprVar:
         return ExprVar(name=str(items[0]))
 
-    def name_atom(self, items: list[Any]) -> ExprVar:
-        return ExprVar(name=str(items[0]))
-
     def _collect_body(self, draft: BlockDraft, body_items: list[Any]) -> None:
+        seen_sections: set[str] = set()
+        allowed = ALLOWED_SECTIONS.get(draft.kind, frozenset())
         for item in body_items:
             if isinstance(item, dict) and "scalar" in item:
                 key = item["scalar"]
@@ -342,6 +452,67 @@ class YoniTransformer(Transformer):
                 continue
             if isinstance(item, tuple):
                 section_name, lines = item
+                if section_name in seen_sections:
+                    draft.errors.append(
+                        duplicate_section(
+                            section_name,
+                            file=draft.file,
+                            block_id=draft.block_id,
+                        )
+                    )
+                seen_sections.add(section_name)
+                if allowed and section_name not in allowed:
+                    draft.errors.append(
+                        unknown_section(
+                            section_name,
+                            draft.kind.value,
+                            file=draft.file,
+                            block_id=draft.block_id,
+                        )
+                    )
                 draft.sections.setdefault(section_name, []).extend(
                     line for line in lines if line is not None
                 )
+
+
+def _filter_change_items(items: list[Any]) -> list[Any]:
+    skip = {
+        "ADD_FIELD", "REMOVE_FIELD", "RENAME_FIELD",
+        "REPLACE_REF", "CREATE_TRANS", "REMOVE_TRANS",
+    }
+    return [x for x in items if not (isinstance(x, Token) and x.type in skip)]
+
+
+def _as_expr_node(node: Any) -> Any:
+    from yoni.parser.builders.base import _as_expr
+
+    return _as_expr(node)
+
+
+def _span(meta: Any, file: str) -> SourceSpan | None:
+    if meta is None:
+        return None
+    line = getattr(meta, "line", None)
+    if line is None:
+        return None
+    return SourceSpan(
+        file=file,
+        start_line=line,
+        end_line=getattr(meta, "end_line", line) or line,
+        start_column=getattr(meta, "column", 0) or 0,
+        end_column=getattr(meta, "end_column", 0) or 0,
+    )
+
+
+_EXPR_RULES = (
+    "eq_expr", "ne_expr", "ge_expr", "le_expr", "gt_expr", "lt_expr",
+    "add_expr", "sub_expr", "mul_expr", "div_expr", "factor", "paren_factor",
+    "call_expr", "number_atom", "bool_atom", "string_atom", "ref_atom",
+    "var_atom", "enum_atom",
+)
+for _rule in _EXPR_RULES:
+    setattr(
+        YoniTransformer,
+        f"expressions__{_rule}",
+        getattr(YoniTransformer, _rule),
+    )

@@ -1,7 +1,7 @@
 // Expression sub-grammar for Yoni (imported by yoni.lark)
 
 REFERENCE: /@[A-Za-z]+\.[A-Za-z][a-zA-Z0-9]*(\.[A-Za-z][a-zA-Z0-9]*)*/
-PASCAL_NAME: /[A-Z][a-z][a-zA-Z0-9]*/
+PASCAL_NAME: /[A-Z][a-zA-Z0-9]*/
 
 ?expr: comparison
 
@@ -22,15 +22,18 @@ PASCAL_NAME: /[A-Z][a-z][a-zA-Z0-9]*/
      | term "/" factor -> div_expr
 
 ?factor: atom
-       | "(" expr ")"
+       | "(" expr ")" -> paren_factor
 
-?atom: NUMBER -> number_atom
+?atom: call_atom
+     | NUMBER -> number_atom
      | BOOL -> bool_atom
      | STRING -> string_atom
      | REFERENCE -> ref_atom
      | DOTTED_NAME -> var_atom
      | CNAME -> var_atom
      | PASCAL_NAME -> enum_atom
+
+call_atom: CNAME "(" [expr ("," expr)*] ")" -> call_expr
 
 EQ: "=="
 NE: "!="
@@ -40,7 +43,7 @@ GT: ">"
 LT: "<"
 
 NUMBER: /-?\d+(\.\d+)?/
-BOOL: "true" | "false"
+BOOL.2: "true" | "false"
 STRING: /"[^"]*"/
 DOTTED_NAME: /[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+/
 CNAME: /[a-z][a-z0-9_]*/

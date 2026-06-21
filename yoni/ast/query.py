@@ -6,8 +6,9 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from yoni.ast.block_base import BlockBase
 from yoni.ast.expr import ExprNode, OrderByDef
-from yoni.ast.types import Reference, SourceSpan
+from yoni.ast.types import RefLink, Reference
 
 
 class QueryReturn(BaseModel):
@@ -16,15 +17,15 @@ class QueryReturn(BaseModel):
     inner: Reference | None = None
 
 
-class QueryAST(BaseModel):
+class IntentReturn(BaseModel):
+    type: str = "Entity"
+    ref: Reference | None = None
+
+
+class QueryAST(BlockBase):
     type: Literal["Query"] = "Query"
-    id: str
-    name: str
-    version: int = 1
-    desc: str = ""
-    entity: Reference | None = None
+    entity: RefLink | None = None
     where: ExprNode | None = None
     order_by: list[OrderByDef] = Field(default_factory=list)
     limit: int | None = None
     return_spec: QueryReturn | None = None
-    span: SourceSpan | None = None

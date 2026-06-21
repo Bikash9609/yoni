@@ -4,17 +4,12 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 
+from yoni.ast.block_base import BlockBase
 from yoni.ast.expr import StepDef
-from yoni.ast.types import SourceSpan
 
 
-class WorkflowAST(BaseModel):
+class WorkflowAST(BlockBase):
     type: Literal["Workflow"] = "Workflow"
-    id: str
-    name: str
-    version: int = 1
-    desc: str = ""
     steps: list[StepDef] = Field(default_factory=list)
-    span: SourceSpan | None = None

@@ -2,7 +2,7 @@
 // Pipeline step: Parser → AST (see docs/03-final-yoni-specs.md)
 
 %import common.WS_INLINE
-%import .expressions (EQ, NE, GE, LE, GT, LT, NUMBER, BOOL, STRING, DOTTED_NAME, CNAME, REFERENCE, PASCAL_NAME, expr, comparison, arith, term, factor, atom)
+%import .expressions (EQ, NE, GE, LE, GT, LT, NUMBER, BOOL, STRING, DOTTED_NAME, CNAME, REFERENCE, PASCAL_NAME, expr, comparison, arith, term, factor, atom, call_expr)
 %declare _INDENT _DEDENT
 
 // --- Layer 1: Lexical ---
@@ -18,12 +18,11 @@ SECTION_KW.3: "fields"i | "indices"i | "input"i | "validate"i
             | "payload"i | "steps"i | "order_by"i | "given"i | "expect"i
             | "changes"i | "affects"i | "domains"i | "capabilities"i
             | "env"i | "services"i | "resources"i | "expression"i
-            | "check"i | "result"i | "layout"i | "sla"i
-            | "criticality"i | "owner"i | "entities"i | "rules"i | "events"i
+            | "check"i | "result"i | "layout"i | "entities"i | "rules"i | "events"i
 
-ID: /[A-Z][A-Z0-9_]+/
+ID.4: /[A-Z][A-Z0-9_]+/
 TYPE_CODE: "s" | "i" | "f" | "b" | "t"
-INDEX_TYPE: "unique" | "index"
+INDEX_TYPE.4: "unique" | "index"
 FIELD_MODIFIER.3: "unique"i | "nullable"i | "secret"i
 ARROW: "->"
 PROCESS_NEW.3: "new"i
@@ -32,6 +31,15 @@ PROCESS_SAVE.3: "save"i
 EXPECT_EQ.3: "eq"i
 EXPECT_EMITTED.3: "emitted"i
 WHEN_INTENT.3: "intent"i
+LIST_KW.4: "list"i
+ORDER_DIR.3: "asc"i | "desc"i
+DURATION: /\d+(ms|s|m)/
+ADD_FIELD.3: "AddField"i
+REMOVE_FIELD.3: "RemoveField"i
+RENAME_FIELD.3: "RenameField"i
+REPLACE_REF.3: "ReplaceReference"i
+CREATE_TRANS.3: "CreateTransition"i
+REMOVE_TRANS.3: "RemoveTransition"i
 SCALAR_TEXT.2: /[a-zA-Z0-9_.-]+/
 
 // --- Layer 2: Structural ---
@@ -59,6 +67,10 @@ block_body: body_item*
           | top_query
           | top_return
           | top_message
+          | top_sla
+          | top_criticality
+          | top_owner
+          | return_section
           | section
           | _NEWLINE
 
@@ -70,16 +82,23 @@ top_http_status: "http_status:" NUMBER _NEWLINE
 top_from_version: "from_version:" NUMBER _NEWLINE
 top_to_version: "to_version:" NUMBER _NEWLINE
 top_breaking: "breaking:" BOOL _NEWLINE
-top_region: "region:" scalar_value _NEWLINE
+top_region: "region:" SCALAR_TEXT _NEWLINE
 top_replicas: "replicas:" NUMBER _NEWLINE
 top_entity: "entity:" REFERENCE _NEWLINE
 top_uses: "uses:" REFERENCE _NEWLINE
 top_query: "query:" REFERENCE _NEWLINE
 top_return: "return:" return_spec _NEWLINE
 top_message: "message:" scalar_value _NEWLINE
+top_sla: "sla:" DURATION _NEWLINE
+top_criticality: "criticality:" SCALAR_TEXT _NEWLINE
+top_owner: "owner:" SCALAR_TEXT _NEWLINE
+
+return_section: "return:" _NEWLINE return_section_body
+
+return_section_body: _INDENT return_spec_line _NEWLINE _DEDENT
 
 return_spec: REFERENCE
-           | "list" "[" REFERENCE "]"
+           | LIST_KW "[" REFERENCE "]"
 
 desc_body: _INDENT desc_line+ _DEDENT
          |
@@ -95,15 +114,16 @@ section_line: expr_line _NEWLINE
             | process_line _NEWLINE
             | state_line _NEWLINE
             | transition_line _NEWLINE
-            | step_line _NEWLINE
+            | step_line_simple _NEWLINE
             | ref_line _NEWLINE
             | expect_line _NEWLINE
             | when_line _NEWLINE
             | change_line _NEWLINE
             | field_line _NEWLINE
             | index_line _NEWLINE
+            | name_line _NEWLINE
+            | order_by_line _NEWLINE
             | kv_line _NEWLINE
-            | content_line _NEWLINE
             | _NEWLINE
 
 // --- Layer 3: Section line rules ---
@@ -113,6 +133,10 @@ field_line.10: CNAME ":" type_spec field_modifier*
 field_modifier: FIELD_MODIFIER
 
 index_line: CNAME ":" INDEX_TYPE
+
+name_line.12: CNAME
+
+order_by_line.20: CNAME ORDER_DIR
 
 ref_line.10: REFERENCE
 
@@ -124,17 +148,13 @@ process_save: PROCESS_SAVE CNAME
               | process_set
               | process_save
 
-process_value: REFERENCE | DOTTED_NAME | NUMBER | BOOL | STRING | PASCAL_NAME
+process_value: REFERENCE | SCALAR_TEXT | DOTTED_NAME | ID | NUMBER | BOOL | STRING | PASCAL_NAME
 
 state_line.10: PASCAL_NAME
 
 transition_line.10: PASCAL_NAME ARROW PASCAL_NAME
 
-step_line.10: PASCAL_NAME ":" REFERENCE
-
-kv_line.5: CNAME ":" kv_value
-
-kv_value: CNAME | NUMBER | STRING | BOOL | ID | SCALAR_TEXT
+step_line_simple.10: PASCAL_NAME ":" REFERENCE
 
 expect_eq: EXPECT_EQ DOTTED_NAME expect_value
 expect_emitted: EXPECT_EMITTED REFERENCE
@@ -142,7 +162,7 @@ expect_emitted: EXPECT_EMITTED REFERENCE
 ?expect_line: expect_eq
              | expect_emitted
 
-expect_value: DOTTED_NAME | REFERENCE | NUMBER | BOOL | STRING | PASCAL_NAME
+expect_value: SCALAR_TEXT | DOTTED_NAME | REFERENCE | NUMBER | BOOL | STRING | PASCAL_NAME | ID
 
 expr_line.10: expr
 
@@ -152,16 +172,32 @@ when_input: CNAME when_value
 ?when_line: when_intent
            | when_input
 
-when_value: REFERENCE | DOTTED_NAME | NUMBER | BOOL | STRING | ID | PASCAL_NAME | SCALAR_TEXT
+when_value: ID | REFERENCE | SCALAR_TEXT | DOTTED_NAME | NUMBER | BOOL | STRING | PASCAL_NAME | CNAME
 
-change_line: "AddField" REFERENCE CNAME TYPE_CODE field_modifier*
+change_add_field: ADD_FIELD REFERENCE CNAME TYPE_CODE field_modifier*
+change_remove_field: REMOVE_FIELD REFERENCE CNAME
+change_rename_field: RENAME_FIELD REFERENCE CNAME CNAME
+change_replace_ref: REPLACE_REF REFERENCE REFERENCE
+change_create_trans: CREATE_TRANS PASCAL_NAME ARROW PASCAL_NAME
+change_remove_trans: REMOVE_TRANS PASCAL_NAME ARROW PASCAL_NAME
+
+?change_line: change_add_field
+            | change_remove_field
+            | change_rename_field
+            | change_replace_ref
+            | change_create_trans
+            | change_remove_trans
+
+kv_line.5: (CNAME | ID) ":" kv_value
+
+kv_value: SCALAR_TEXT | STRING | BOOL | NUMBER | ID | REFERENCE
+
+return_spec_line: return_spec
 
 type_spec.10: TYPE_CODE
             | REFERENCE
 
-scalar_value: STRING | ID | CNAME | REFERENCE | SCALAR_TEXT
-
-content_line: /[^\n]+/
+scalar_value: SCALAR_TEXT | STRING | ID | REFERENCE | BOOL | CNAME
 
 _NEWLINE: /(\r?\n[\t ]*)+/
 
